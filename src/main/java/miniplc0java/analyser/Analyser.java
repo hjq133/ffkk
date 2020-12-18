@@ -270,6 +270,9 @@ public final class Analyser {
                 break;
             }
         }
+        if(findSymbol("main") == null) {
+            throw new AnalyzeError(ErrorCode.NoMainFunction, "xxxx");
+        }
         expect(TokenType.EOF);
     }
 
@@ -293,12 +296,11 @@ public final class Analyser {
     private void analyseLetDeclare() throws CompileError {
         expect(TokenType.LET_KW);
 
-        System.out.println("analyse let declare");
         var nameToken = expect(TokenType.Ident);
 
         // : 冒号
         expect(TokenType.Colon);
-        var type = expect(TokenType.INT, TokenType.VOID);
+        var type = expect(TokenType.INT); // 只能是int
 
         // 变量初始化了吗
         boolean initialized = false;
@@ -307,20 +309,15 @@ public final class Analyser {
         if (nextIf(TokenType.Eq) != null) {
             // 分析初始化的表达式
             initialized = true;
-            analyseExpression(1);
+            analyseExpression(1); // TODO 如果存在初始化表达式，类型应当与声明时相同
         }
 
         // 分号
         expect(TokenType.Semicolon);
 
-        // 加入符号表，请填写名字和当前位置（报错用）
         String name = (String) nameToken.getValue();
         addSymbol(name, initialized, false, false, nameToken.getStartPos(), type);
-
-        // 如果没有初始化的话在栈里推入一个初始值
-        if (!initialized) {
-            instructions.add(new Instruction(Operation.LIT, 0));
-        }
+        // 如果没有初始化则不管，等报错
     }
 
     /**
@@ -532,7 +529,7 @@ public final class Analyser {
         instructions.add(new Instruction(Operation.RET));
     }
 
-    private void analyseExpression(int minPrec) throws CompileError {
+    private TokenType computeAtom() throws CompileError {
         if(check(TokenType.Ident)) {
             var nameToken = expect(TokenType.Ident);
             String name = (String) nameToken.getValue();
@@ -552,7 +549,7 @@ public final class Analyser {
                 // 设置符号已初始化
                 symbol.setInitialized(true);
                 instructions.add(new Instruction(Operation.STO));
-
+                return TokenType.VOID;
             } else if(nextIf(TokenType.LParen) != null) {  // call_expr -> IDENT '(' call_param_list? ')'
                 var symbol = findSymbol(name);
                 if (symbol == null) {
@@ -575,6 +572,8 @@ public final class Analyser {
                 } else {
                     instructions.add(new Instruction(Operation.CALL));
                 }
+                return symbol.type;
+
             } else {  // IDENT
                 var symbol = findSymbol(name);
                 if (symbol == null) {
@@ -588,35 +587,45 @@ public final class Analyser {
                     throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
                 }
                 instructions.add(new Instruction(Operation.LOD));
+                return symbol.type;
             }
+
         } else if(check(TokenType.Minus)) {  // negate_expr -> '-' expr
             expect(TokenType.Minus);
             // 计算结果需要被 0 减
             instructions.add(new Instruction(Operation.LIT, 0));
-            analyseExpression(1);
+            var type = analyseExpression(1);
             instructions.add(new Instruction(Operation.SUB));
+            return type;
         } else if(check(TokenType.LParen)) {  // group_expr -> '(' expr ')'
             expect(TokenType.LParen);
-            analyseExpression(1);
+            var type = analyseExpression(1);
             expect(TokenType.RParen);
+            return type;
         } else { // literal_expr -> UINT_LITERAL | DOUBLE_LITERAL | STRING_LITERAL | CHAR_LITERAL
             if(check(TokenType.Uint)) {
                 var token = expect(TokenType.Uint);
                 int value = (int)token.getValue();
                 instructions.add(new Instruction(Operation.LIT, value));
+                return TokenType.INT;
             } else if(check(TokenType.String)) {
                 var token = expect(TokenType.String);
                 String value = token.getValue().toString();
                 instructions.add(new Instruction(Operation.LIT, value));
+                return TokenType.String;
             } else if(check(TokenType.Char)) {
                 var token = expect(TokenType.Char);
                 String value = token.getValue().toString();
                 instructions.add(new Instruction(Operation.LIT, value));  // TODO char 的操作数
+                return TokenType.Char;
             } else {
                 throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
             }
         }
+    }
 
+    private TokenType analyseExpression(int minPrec) throws CompileError {
+        var leftType = computeAtom();
         if(check(TokenType.AS_KW)) { // as_expr -> expr 'as' ty
             expect(TokenType.AS_KW);
             var type = expect(TokenType.INT, TokenType.VOID);
@@ -626,17 +635,20 @@ public final class Analyser {
                 var token = peek();
                 String name = token.getValue().toString();
                 if (OPPrec.get(name) == null || OPPrec.get(name) < minPrec) {
-                    return;
+                    return TokenType.INT;
                 }
                 next();
                 String op = token.getValue().toString();
                 int prec = OPPrec.get(op);
                 int nextMinPrec = prec + 1;
-                analyseExpression(nextMinPrec);
+                var rightType = analyseExpression(nextMinPrec);
+                if(leftType != rightType) {
+                    throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
+                }
                 instructions.add(new Instruction(String2OP.get(op)));
             }
         }
-        return;
+        return TokenType.INT;
     }
 
     private void analyseCallParamList() throws CompileError {
