@@ -483,39 +483,66 @@ public final class Analyser {
             } else {  // 标识符表达式
                 return analyseIdentExpression(name, nameToken);
             }
-
-        } else if(check(TokenType.Minus)) {  // negate_expr -> '-' expr
-            expect(TokenType.Minus);
-            // 计算结果需要被 0 减
-            instructions.add(new Instruction(Operation.LIT, 0));
-            var type = analyseExpression(1);
-            instructions.add(new Instruction(Operation.SUB));
-            return type;
-        } else if(check(TokenType.LParen)) {  // group_expr -> '(' expr ')'
-            expect(TokenType.LParen);
-            var type = analyseExpression(1);
-            expect(TokenType.RParen);
-            return type;
+        } else if(check(TokenType.Minus)) {  // 取反表达式
+            return analyseNegateExpression();
+        } else if(check(TokenType.LParen)) {  // 括号表达式
+            return analyseParenExpression();
         } else { // literal_expr -> UINT_LITERAL | DOUBLE_LITERAL | STRING_LITERAL | CHAR_LITERAL
-            if(check(TokenType.Uint)) {
-                var token = expect(TokenType.Uint);
-                int value = (int)token.getValue();
-                instructions.add(new Instruction(Operation.LIT, value));
-                return TokenType.INT;
-            } else if(check(TokenType.String)) {
-                var token = expect(TokenType.String);
-                String value = token.getValue().toString();
-                instructions.add(new Instruction(Operation.LIT, value));
-                return TokenType.String;
-            } else if(check(TokenType.Char)) {
-                var token = expect(TokenType.Char);
-                String value = token.getValue().toString();
-                instructions.add(new Instruction(Operation.LIT, value));  // TODO char 的操作数
-                return TokenType.Char;
-            } else {
-                throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
-            }
+            return analyseLiteralExpression();
         }
+    }
+
+
+    /**
+     * 括号表达式
+     * // literal_expr -> UINT_LITERAL | DOUBLE_LITERAL | STRING_LITERAL | CHAR_LITERAL
+     */
+    private TokenType analyseLiteralExpression() throws CompileError {
+        if(check(TokenType.Uint)) {
+            var token = expect(TokenType.Uint);
+            int value = (int)token.getValue();
+            instructions.add(new Instruction(Operation.LIT, value));
+            return TokenType.INT;
+        } else if(check(TokenType.String)) {
+            var token = expect(TokenType.String);
+            String value = token.getValue().toString();
+            instructions.add(new Instruction(Operation.LIT, value));
+            return TokenType.String;
+        } else if(check(TokenType.Char)) {
+            var token = expect(TokenType.Char);
+            String value = token.getValue().toString();
+            instructions.add(new Instruction(Operation.LIT, value));  // TODO char 的操作数
+            return TokenType.Char;
+        } else {
+            throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
+        }
+    }
+
+
+    /**
+     * 括号表达式
+     * group_expr -> '(' expr ')'
+     */
+    private TokenType analyseParenExpression() throws CompileError {
+        expect(TokenType.Minus);
+        // 计算结果需要被 0 减
+        instructions.add(new Instruction(Operation.LIT, 0));
+        var type = analyseExpression(1);
+        instructions.add(new Instruction(Operation.SUB));
+        return type;
+    }
+
+    /**
+     * 取反表达式
+     * negate_expr -> '-' expr
+     */
+    private TokenType analyseNegateExpression() throws CompileError {
+        expect(TokenType.Minus);
+        // 计算结果需要被 0 减
+        instructions.add(new Instruction(Operation.LIT, 0));
+        var type = analyseExpression(1);
+        instructions.add(new Instruction(Operation.SUB));
+        return type;
     }
 
     /**
