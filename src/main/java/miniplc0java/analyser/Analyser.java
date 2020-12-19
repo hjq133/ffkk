@@ -283,12 +283,14 @@ public final class Analyser {
         expect(TokenType.Arrow);
 
         var type = expect(TokenType.INT, TokenType.VOID);  // 返回值类型
-        symbolTable.addSymbolFunc(name, nameToken.getStartPos(), type);  // 添加到前一层符号表
+        symbolTable.addSymbolFunc(name, nameToken.getStartPos(), type);  // 添加到全局变量表
+
         symbolTable.currentFuncName = name;  // 改变当前函数名称，用于return的时候check type
         analyseBlockStatement(false); // 无需再建表了
 
         // 删除符号表
         symbolTable.removeMap();
+        symbolTable.currentFuncName = null;
     }
 
     /**
@@ -373,7 +375,6 @@ public final class Analyser {
             analyseExpressionStatement();
         }
     }
-
 
     /**
      * expr_stmt -> expr ';'
