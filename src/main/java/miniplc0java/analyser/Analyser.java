@@ -431,11 +431,11 @@ public final class Analyser {
         expect(TokenType.IF_KW);
         var type = analyseExpression(1);
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
-        instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 else 处
+        instructions.add(new Instruction(Operation.BRFALSE, 0));
         int index1 = instructions.size() - 1;
 
         analyseBlockStatement(true);
-        instructions.add(new Instruction(Operation.JUMP, 0)); // TODO 如果condition为0，那么jump 到 else 结束
+        instructions.add(new Instruction(Operation.BR, 0));
         int index2 = instructions.size() - 1;
 
         if(nextIf(TokenType.ELSE_KW) != null) {
@@ -444,12 +444,12 @@ public final class Analyser {
             }
             else {
                 var offset = instructions.size() - 1 - index1;
-                instructions.set(index1, new Instruction(Operation.JUMP, offset)); // TODO check一下这个offset
+                instructions.set(index1, new Instruction(Operation.BRFALSE, offset));
                 analyseBlockStatement(true);
             }
         }
-        var offset = instructions.size() - 1 - index2;  // TODO check一下这个offset
-        instructions.set(index2, new Instruction(Operation.JUMP, offset));
+        var offset = instructions.size() - 1 - index2;
+        instructions.set(index2, new Instruction(Operation.BR, offset));
     }
 
     /**
@@ -457,18 +457,21 @@ public final class Analyser {
      */
     private void analyseWhileStatement() throws CompileError {
         expect(TokenType.WHILE_KW);
+        int index0 = instructions.size() - 1;
+
         var type = analyseExpression(1); // condition
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
 
-        instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 while 外面
+        instructions.add(new Instruction(Operation.BRFALSE, 0)); // 如果condition失败了，jump 到 while 外面
         int index1 = instructions.size() - 1;
 
         analyseBlockStatement(true);
 
-        instructions.add(new Instruction(Operation.NOCONJUMP, index1 - (instructions.size() - 1))); // 无条件跳转到while开头 TODO check 一下offset
+        //  TODO check 一下offset
+        instructions.add(new Instruction(Operation.BR, index0 - (instructions.size() - 1))); // 无条件跳转到while开头
 
         int offset = instructions.size() - 1 - index1;
-        instructions.set(index1, new Instruction(Operation.JUMP, offset));
+        instructions.set(index1, new Instruction(Operation.BRFALSE, offset));
     }
 
     private void analyseReturnStatement() throws CompileError {

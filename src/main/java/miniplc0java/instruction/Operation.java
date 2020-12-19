@@ -12,8 +12,9 @@ public enum Operation {
     NOT,
     CALL,
     STACKALLOC,
-    JUMP, // 条件跳转
-    NOCONJUMP, // 无条件跳转
+    BRTRUE,
+    BRFALSE,
+    BR, // 无条件跳转
     PRINTS,
     PRINGI,
     PRINTC,
