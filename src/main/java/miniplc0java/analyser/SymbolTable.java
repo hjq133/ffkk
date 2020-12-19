@@ -15,7 +15,7 @@ public class SymbolTable {
     /**
      * 符号表 * 3， 全局表，参数/返回值表，局部变量表
      */
-    HashMap<String, SymbolEntry> indexMapGloba = new HashMap<>();
+    HashMap<String, SymbolEntry> indexMapGlobal = new HashMap<>();
     ArrayList<HashMap<String, SymbolEntry>> indexTableParam = new ArrayList<>();
     ArrayList<HashMap<String, SymbolEntry>> indexTableLocal = new ArrayList<>();
     public String currentFuncName = null; // 当前所在函数的名字
@@ -45,9 +45,17 @@ public class SymbolTable {
         this.standardFunction.put("putstr", TokenType.VOID);
         this.standardFunction.put("putln", TokenType.VOID);
 
-        for (HashMap.Entry<String, TokenType> entry : standardFunction.entrySet()) {
-            this.indexMapGloba.put(entry.getKey(), new SymbolEntry(false, false, true, entry.getValue()));
+        for (HashMap.Entry<String, TokenType> entry : standardFunction.entrySet()) { // TODO 是直接提前加进去嘛
+            int index = indexMapGlobal.size();
+            this.indexMapGlobal.put(entry.getKey(), new SymbolEntry(false, false, true, entry.getValue(), 1, index));
         }
+    }
+
+    /**
+     * 获取symbol的index
+     */
+    private void getSymbolIndex(SymbolEntry symbol, HashMap<String, SymbolEntry> map) throws AnalyzeError {
+
     }
 
     /**
@@ -66,11 +74,15 @@ public class SymbolTable {
      * @throws AnalyzeError 如果重复定义了则抛异常
      */
     public void addSymbolVariable(String name, boolean isInitialized, boolean isConstant, Pos curPos, Token typeToken) throws AnalyzeError {
-        SymbolEntry entry = new SymbolEntry(isConstant, isInitialized, false, typeToken.getTokenType());
+        SymbolEntry entry = new SymbolEntry(isConstant, isInitialized, false, typeToken.getTokenType(), 0, 0);
         if (currentFuncName == null) { // 加入全局表
-            addSymbol(name, entry, curPos, indexMapGloba);
+            entry.level = 1;
+            entry.index = indexMapGlobal.size();
+            addSymbol(name, entry, curPos, indexMapGlobal);
         }
         else { // 加入局部表
+            entry.level = 2;
+            entry.index = indexTableLocal.size();
             addSymbol(name, entry, curPos, indexTableLocal.get(indexTableLocal.size() - 1));
         }
     }
@@ -80,8 +92,9 @@ public class SymbolTable {
      * @throws AnalyzeError
      */
     public void addSymbolFunc(String name, Pos curPos, Token typeToken) throws AnalyzeError {
-        SymbolEntry entry = new SymbolEntry(false, false, true, typeToken.getTokenType());
-        addSymbol(name, entry, curPos, indexMapGloba);
+        int index = indexMapGlobal.size();
+        SymbolEntry entry = new SymbolEntry(false, false, true, typeToken.getTokenType(), 1, index);
+        addSymbol(name, entry, curPos, indexMapGlobal);
     }
 
     /**
@@ -89,7 +102,8 @@ public class SymbolTable {
      * @throws AnalyzeError
      */
     public void addSymbolParam(String name, boolean isConstant, Pos curPos, Token typeToken) throws AnalyzeError {
-        SymbolEntry entry = new SymbolEntry(isConstant, true, false, typeToken.getTokenType());
+        int index = indexMapGlobal.size() + 1; // 多算一个
+        SymbolEntry entry = new SymbolEntry(isConstant, true, false, typeToken.getTokenType(), 3, index);
         addSymbol(name, entry, curPos, indexTableParam.get(indexTableParam.size() - 1));
     }
 
@@ -129,7 +143,7 @@ public class SymbolTable {
         }
 
         // 再查全局
-        symbol = indexMapGloba.get(name);
+        symbol = indexMapGlobal.get(name);
         return symbol;
     }
 }

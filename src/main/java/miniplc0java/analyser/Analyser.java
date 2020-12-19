@@ -142,7 +142,6 @@ public final class Analyser {
         }
     }
 
-
     /**
      * 获取变量是否是常量
      *
@@ -161,7 +160,22 @@ public final class Analyser {
     }
 
     /**
+     *
+     */
+    private void addSymbolInstruction(SymbolEntry symbol) {
+        int index;
+        if(symbol.level == 1) {
+            instructions.add(new Instruction(Operation.GLOBA, symbol.index));
+        } else if (symbol.level == 2) {
+            instructions.add(new Instruction(Operation.LOCA, symbol.index));
+        } else {
+            instructions.add(new Instruction(Operation.ARGA, symbol.index));
+        }
+    }
+
+    /**
      * program -> decl_stmt* function*
+     * TODO 还需要加指令
      */
     private void analyseProgram() throws CompileError {
         while(true) {
@@ -431,9 +445,10 @@ public final class Analyser {
         instructions.set(index1, new Instruction(Operation.JUMP, offset));
     }
 
-    private void analyseReturnStatement() throws CompileError {  // TODO gai
+    private void analyseReturnStatement() throws CompileError {
         expect(TokenType.RETURN_KW);
         TokenType type = TokenType.VOID;
+        instructions.add(new Instruction(Operation.ARGA, 0));  // ARGA(0)
         if(nextIf(TokenType.Semicolon) == null) { // 如果有返回值
             type = analyseExpression(1);
         }
@@ -441,6 +456,7 @@ public final class Analyser {
         if(symbolTable.findSymbol(symbolTable.currentFuncName).type != type) {
             throw new AnalyzeError(ErrorCode.ReturnTypeError, symbolTable.currentFuncName);
         }
+        instructions.add(new Instruction(Operation.STO));
         instructions.add(new Instruction(Operation.RET));
     }
 
@@ -460,51 +476,11 @@ public final class Analyser {
         if(check(TokenType.Ident)) {
             var nameToken = expect(TokenType.Ident);
             String name = (String) nameToken.getValue();
-            if(nextIf(TokenType.Assign) != null) {  // assign_expr -> IDENT '=' expr 赋值语句
-                var type = analyseExpression(1);
-                var symbol = symbolTable.findSymbol(name);
-                if (symbol == null) {
-                    // 没有这个标识符
-                    throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
-                } else if (symbol.isConstant) {
-                    // 标识符是常量
-                    throw new AnalyzeError(ErrorCode.AssignToConstant, /* 当前位置 */ nameToken.getStartPos());
-                } else if (symbol.isFunction) {
-                    // 标识符是函数
-                    throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
-                } else if(symbol.type != type) {
-                    throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
-                }
-                // 设置符号已初始化
-                symbol.setInitialized(true);
-                instructions.add(new Instruction(Operation.LOD));
-                instructions.add(new Instruction(Operation.STO)); // TODO 需要把addr push进去吗
-                return TokenType.VOID;
-            } else if(nextIf(TokenType.LParen) != null) {  // call_expr -> IDENT '(' call_param_list? ')'
-                var symbol = symbolTable.findSymbol(name);
-                if (symbol == null) {
-                    // 没有这个标识符
-                    throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
-                } else if(symbol.isFunction == false) {
-                    // 不是函数
-                    throw new AnalyzeError(ErrorCode.ExpectedFunction, /* 当前位置 */ nameToken.getStartPos());
-                }
-
-                if(check(TokenType.RParen)) { // 检查是否有参数列表
-                    expect(TokenType.RParen);
-                }else {
-                    instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
-                    analyseCallParamList();
-                }
-
-                if(symbolTable.standardFunction.get(name) != null) {  // 是否是标准函数
-                    instructions.add(new Instruction(symbolTable.StandardOP.get(name)));
-                } else {
-                    instructions.add(new Instruction(Operation.CALL));
-                }
-                return symbol.type;
-
-            } else {  // IDENT
+            if(nextIf(TokenType.Assign) != null) {  // 赋值表达式
+                return analyseAssignExpression(name, nameToken);
+            } else if(nextIf(TokenType.LParen) != null) {  // 函数调用表达式
+                return analyseCallExpression(name, nameToken);
+            } else {  // 标识符表达式
                 return analyseIdentExpression(name, nameToken);
             }
 
@@ -543,6 +519,7 @@ public final class Analyser {
     }
 
     /**
+     * 标识符表达式
      * ident_expr -> IDENT
      * 这儿IDent一定在 = 右边，需要初始化
      */
@@ -558,7 +535,66 @@ public final class Analyser {
             // 标识符是函数
             throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
         }
+
+        addSymbolInstruction(symbol);
         instructions.add(new Instruction(Operation.LOD));
+        return symbol.type;
+    }
+
+    /**
+     * 赋值表达式
+     * assign_expr -> IDENT '=' expr
+     * @throws CompileError
+     */
+    private TokenType analyseAssignExpression(String name, Token nameToken) throws CompileError{
+        var type = analyseExpression(1);
+        var symbol = symbolTable.findSymbol(name);
+        if (symbol == null) {
+            // 没有这个标识符
+            throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
+        } else if (symbol.isConstant) {
+            // 标识符是常量
+            throw new AnalyzeError(ErrorCode.AssignToConstant, /* 当前位置 */ nameToken.getStartPos());
+        } else if (symbol.isFunction) {
+            // 标识符是函数
+            throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
+        } else if(symbol.type != type) {
+            throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
+        }
+        // 设置符号已初始化
+        symbol.setInitialized(true);
+
+        addSymbolInstruction(symbol);
+        instructions.add(new Instruction(Operation.STO));
+        return TokenType.VOID;
+    }
+
+    /**
+     * 函数调用表达式
+     * call_expr -> IDENT '(' call_param_list? ')'
+     */
+    private TokenType analyseCallExpression(String name, Token nameToken) throws CompileError{
+        var symbol = symbolTable.findSymbol(name);
+        if (symbol == null) {
+            // 没有这个标识符
+            throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
+        } else if(symbol.isFunction == false) {
+            // 不是函数
+            throw new AnalyzeError(ErrorCode.ExpectedFunction, /* 当前位置 */ nameToken.getStartPos());
+        }
+        if(check(TokenType.RParen)) { // 检查是否有参数列表
+            expect(TokenType.RParen);
+        }else {
+            if(symbol.type != TokenType.VOID) {
+                instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
+            }
+            analyseCallParamList();
+        }
+        if(symbolTable.standardFunction.get(name) != null) {  // 是否是标准函数
+            instructions.add(new Instruction(symbolTable.StandardOP.get(name)));
+        } else {
+            instructions.add(new Instruction(Operation.CALL)); // TODO 调用编号为id的函数
+        }
         return symbol.type;
     }
 

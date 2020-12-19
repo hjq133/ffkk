@@ -8,12 +8,16 @@ public class SymbolEntry {
     boolean isInitialized;
     boolean isFunction;
     TokenType type;
+    int level; // 1 代表全局，2 代表局部变量， 3 代表函数参数
+    int index;
 
-    public SymbolEntry(boolean isConstant, boolean isInitialized, boolean isFunction, TokenType type) {
+    public SymbolEntry(boolean isConstant, boolean isInitialized, boolean isFunction, TokenType type, int level, int index) {
         this.isConstant = isConstant;
         this.isInitialized = isInitialized;
         this.type = type;
         this.isFunction = isFunction;
+        this.level = level;
+        this.index = index;
     }
 
     /**
