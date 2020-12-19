@@ -13,9 +13,10 @@ import java.util.HashMap;
 public class SymbolTable {
 
     /**
-     * 符号表 * 3， 全局表，参数/返回值表，局部变量表
+     * 符号表 * 3， 全局表，全局函数表，参数/返回值表，局部变量表
      */
     HashMap<String, SymbolEntry> indexMapGlobal = new HashMap<>();
+    HashMap<String, SymbolEntry> indexMapFunc = new HashMap<>();
     ArrayList<HashMap<String, SymbolEntry>> indexTableParam = new ArrayList<>();
     ArrayList<HashMap<String, SymbolEntry>> indexTableLocal = new ArrayList<>();
     public String currentFuncName = null; // 当前所在函数的名字
@@ -88,13 +89,13 @@ public class SymbolTable {
     }
 
     /**
-     * 添加一个函数符号, 默认加入Global符号表
+     * 添加一个函数符号, 默认加入Func符号表
      * @throws AnalyzeError
      */
     public void addSymbolFunc(String name, Pos curPos, Token typeToken) throws AnalyzeError {
-        int index = indexMapGlobal.size();
+        int index = indexMapFunc.size() + 1; // func的编号从1开始
         SymbolEntry entry = new SymbolEntry(false, false, true, typeToken.getTokenType(), 1, index);
-        addSymbol(name, entry, curPos, indexMapGlobal);
+        addSymbol(name, entry, curPos, indexMapFunc);
     }
 
     /**
@@ -142,8 +143,12 @@ public class SymbolTable {
             if(symbol != null) return symbol;
         }
 
-        // 再查全局
+        // 再查全局变量
         symbol = indexMapGlobal.get(name);
+        if(symbol != null) return symbol;
+
+        // 再查函数表
+        symbol = indexMapFunc.get(name);
         return symbol;
     }
 }

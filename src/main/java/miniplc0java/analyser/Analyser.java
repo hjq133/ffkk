@@ -490,7 +490,7 @@ public final class Analyser {
             return analyseNegateExpression();
         } else if(check(TokenType.LParen)) {  // 括号表达式
             return analyseParenExpression();
-        } else { // literal_expr -> UINT_LITERAL | DOUBLE_LITERAL | STRING_LITERAL | CHAR_LITERAL
+        } else { // 字面量表达式
             return analyseLiteralExpression();
         }
     }
@@ -541,11 +541,9 @@ public final class Analyser {
      */
     private TokenType analyseNegateExpression() throws CompileError {
         expect(TokenType.Minus);
-        // 计算结果需要被 0 减
-        instructions.add(new Instruction(Operation.LIT, 0));
-        var type = analyseExpression(1);
-        instructions.add(new Instruction(Operation.SUB));
-        return type;
+        TokenType rightType =  computeAtom();
+        instructions.add(new Instruction(Operation.NEG));
+        return rightType;
     }
 
     /**
@@ -648,7 +646,14 @@ public final class Analyser {
                 String op = token.getValue().toString();
                 int prec = OPPrec.get(op);
                 int nextMinPrec = prec + 1;
-                var rightType = analyseExpression(nextMinPrec);
+
+                TokenType rightType;
+                if(check(TokenType.Minus)) {
+                    rightType = analyseNegateExpression();
+
+                } else {
+                    rightType = analyseExpression(nextMinPrec);
+                }
                 if(leftType != rightType) {
                     throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
                 }

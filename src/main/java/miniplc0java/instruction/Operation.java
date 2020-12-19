@@ -28,6 +28,7 @@ public enum Operation {
     LOCA,
     ARGA,
     GLOBA,
+    NEG,
     POP,
     RET,
     WRT
