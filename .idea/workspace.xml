@@ -6,6 +6,22 @@
   <component name="ChangeListManager">
     <list default="true" id="a7ebd99a-57df-4789-b3f1-8079c45bf7f3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/judge.toml" beforeDir="false" afterPath="$PROJECT_DIR$/judge.toml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/App.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/App.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/testAnalyser.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/AnalyzeError.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/AnalyzeError.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/ErrorCode.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/ErrorCode.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Operation.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Operation.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/App.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
@@ -168,9 +184,17 @@
     <property name="project.structure.proportion" value="0.15" />
     <property name="project.structure.side.proportion" value="0.2" />
   </component>
-  <component name="RunManager">
+  <component name="RunManager" selected="Application.App">
     <configuration default="true" type="Applet">
       <option name="POLICY_FILE" value="$APPLICATION_HOME_DIR$/bin/appletviewer.policy" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="App" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="miniplc0java.App" />
+      <module name="miniplc0java.main" />
+      <option name="PROGRAM_PARAMETERS" value="&quot;$PROJECT_DIR$/../../test_data/input.txt&quot; -o &quot;$PROJECT_DIR$/../../test_data/output.txt&quot;" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -231,8 +255,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <list>
+      <item itemvalue="Application.App" />
+      <item itemvalue="Application.testAnalyser" />
+    </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Application.App" />
         <item itemvalue="Application.testAnalyser" />
       </list>
     </recent_temporary>
@@ -265,7 +294,7 @@
       <workItem from="1608114868445" duration="6143000" />
       <workItem from="1608170425347" duration="32236000" />
       <workItem from="1608251241922" duration="33323000" />
-      <workItem from="1608306772577" duration="33343000" />
+      <workItem from="1608306772577" duration="38074000" />
     </task>
     <servers />
   </component>
@@ -324,6 +353,17 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java</url>
+          <line>214</line>
+          <option name="timeStamp" value="27" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/1.json" />

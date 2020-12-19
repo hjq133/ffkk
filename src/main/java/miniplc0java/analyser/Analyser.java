@@ -48,6 +48,11 @@ public final class Analyser {
         this.OPPrec.put("!=", 1);
     }
 
+    public List<Instruction> analyse() throws CompileError {
+        analyseProgram();
+        return instructions;
+    }
+
     /**
      * 查看下一个 Token
      *
