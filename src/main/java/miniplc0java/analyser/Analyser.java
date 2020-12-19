@@ -79,7 +79,6 @@ public final class Analyser {
 
     /**
      * 如果下一个 token 的类型是 tt，则返回 true
-     *
      * @param tt
      * @return
      * @throws TokenizeError
@@ -198,7 +197,6 @@ public final class Analyser {
 
     /**
      * program -> decl_stmt* function*
-     * TODO 还需要加指令
      */
     private void analyseProgram() throws CompileError {
         while(true) {
@@ -215,10 +213,18 @@ public final class Analyser {
                 break;
             }
         }
-        if(symbolTable.findSymbol("main") == null) { // 检测main函数是否存在
+        SymbolEntry symbol = symbolTable.findSymbol("main");
+        if(symbol == null) { // 检测main函数是否存在
             throw new AnalyzeError(ErrorCode.NoMainFunction, "xxxx");
         }
         expect(TokenType.EOF);
+        if(symbol.type != TokenType.VOID) {
+            instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
+        }
+        instructions.add(new Instruction(Operation.CALL, symbol.index));
+        if(symbol.type != TokenType.VOID) {
+            instructions.add(new Instruction(Operation.POP, 1));
+        }
     }
 
     /**
@@ -235,7 +241,6 @@ public final class Analyser {
 
     /**
      * let_decl_stmt -> 'let' IDENT ':' ty ('=' expr)? ';'
-     * TODO 检查值是否一致
      * @throws CompileError
      */
     private void analyseLetDeclare() throws CompileError {
@@ -507,7 +512,7 @@ public final class Analyser {
             String name = (String) nameToken.getValue();
             if(nextIf(TokenType.Assign) != null) {  // 赋值表达式
                 return analyseAssignExpression(name, nameToken);
-            } else if(nextIf(TokenType.LParen) != null) {  // 函数调用表达式
+            } else if(check(TokenType.LParen)) {  // 函数调用表达式
                 return analyseCallExpression(name, nameToken);
             } else {  // 标识符表达式
                 return analyseIdentExpression(name, nameToken);
@@ -636,18 +641,20 @@ public final class Analyser {
             // 不是函数
             throw new AnalyzeError(ErrorCode.ExpectedFunction, /* 当前位置 */ nameToken.getStartPos());
         }
+        if(symbol.type != TokenType.VOID) {
+            instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
+        }
+
+        expect(TokenType.LParen);
         if(check(TokenType.RParen)) { // 检查是否有参数列表
             expect(TokenType.RParen);
         }else {
-            if(symbol.type != TokenType.VOID) {
-                instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
-            }
             analyseCallParamList();
         }
         if(symbolTable.standardFunction.get(name) != null) {  // 是否是标准函数
             instructions.add(new Instruction(symbolTable.StandardOP.get(name)));
         } else {
-            instructions.add(new Instruction(Operation.CALL)); // TODO 调用编号为id的函数
+            instructions.add(new Instruction(Operation.CALL, symbol.index));
         }
         return symbol.type;
     }
