@@ -394,7 +394,10 @@ public final class Analyser {
      * expr_stmt -> expr ';'
      */
     private void analyseExpressionStatement() throws CompileError{
-        analyseExpression(1); // TODO 表达式如果有值，将会被丢弃
+        var type = analyseExpression(1); // 表达式如果有值，将会被丢弃
+        if(type != TokenType.VOID) {
+            instructions.add(new Instruction(Operation.POP));
+        }
         expect(TokenType.Semicolon);
     }
 
