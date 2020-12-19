@@ -19,6 +19,7 @@ public final class Analyser {
 
     Tokenizer tokenizer;
     ArrayList<Instruction> instructions;
+    SymbolTable symbolTable;
 
     /**
      * 当前偷看的 token
@@ -26,46 +27,15 @@ public final class Analyser {
     Token peekedToken = null;
 
     /**
-     * 符号表
-     */
-//    HashMap<String, SymbolEntry> symbolTable = new HashMap<>();
-
-    /**
-     * 标准库函数
-     */
-    HashMap<String, TokenType> standardFunction = new HashMap<>();
-
-    /**
-     * 分程序索引表
-     */
-    ArrayList<HashMap<String, SymbolEntry>> indexTable = new ArrayList<>();
-
-    String currentFuncName = null; // 当前所在函数的名字
-
-    /**
-     * 递归向上查询符号
-     */
-    private SymbolEntry findSymbol(String name) throws AnalyzeError {
-        HashMap<String, SymbolEntry> map;
-        SymbolEntry symbol = null;
-        for(int i = indexTable.size()-1; i>=0; i--) {
-            map = indexTable.get(i);
-            symbol = map.get(name);
-            if(symbol != null) break;
-        }
-        return symbol;
-    }
-
-    /**
      * 优先矩阵表
      */
     HashMap<String, Integer> OPPrec = new HashMap<String, Integer>();
     HashMap<String, Operation> String2OP = new HashMap<>();
-    HashMap<String, Operation> StandardOP = new HashMap<>();
 
     public Analyser(Tokenizer tokenizer) {
         this.tokenizer = tokenizer;
         this.instructions = new ArrayList<>();
+        this.symbolTable = new SymbolTable();
 
         this.OPPrec.put("*", 3);
         this.OPPrec.put("/", 3);
@@ -88,30 +58,6 @@ public final class Analyser {
         this.String2OP.put("<=", Operation.GE);
         this.String2OP.put("==", Operation.EQ);
         this.String2OP.put("!=", Operation.NEQ);
-
-        // 标准库
-        this.StandardOP.put("getint", Operation.SCANI);
-        this.StandardOP.put("getchar", Operation.SCANC);
-        this.StandardOP.put("putint", Operation.PRINGI);
-        this.StandardOP.put("putchar", Operation.PRINTC);
-        this.StandardOP.put("putstr", Operation.PRINTS);
-        this.StandardOP.put("putln", Operation.PRINTLN);
-
-        this.indexTable.add(new HashMap<>());
-
-        // 标准库
-        this.standardFunction.put("getint", TokenType.INT);
-        //this.standardFunction.put("getdouble", TokenType.INT);
-        this.standardFunction.put("getchar", TokenType.INT);
-        this.standardFunction.put("putint", TokenType.VOID);
-        //this.standardFunction.put("putdouble", TokenType.VOID);
-        this.standardFunction.put("putchar", TokenType.VOID);
-        this.standardFunction.put("putstr", TokenType.VOID);
-        this.standardFunction.put("putln", TokenType.VOID);
-
-        for (HashMap.Entry<String, TokenType> entry : standardFunction.entrySet()) {
-            this.indexTable.get(0).put(entry.getKey(), new SymbolEntry(false, false, true, entry.getValue()));
-        }
     }
 
     /**
@@ -196,44 +142,6 @@ public final class Analyser {
         }
     }
 
-    /**
-     * 添加一个符号
-     *
-     * @param name          名字
-     * @param isInitialized 是否已赋值
-     * @param isConstant    是否是常量
-     * @param curPos        当前 token 的位置（报错用）
-     * @throws AnalyzeError 如果重复定义了则抛异常
-     */
-    private void addSymbol(String name, boolean isInitialized, boolean isConstant, boolean isFunction, Pos curPos, Token typeToken) throws AnalyzeError {
-        // 默认加入当前的符号表
-        HashMap<String, SymbolEntry> symbolTable = indexTable.get(indexTable.size() - 1);
-        if (symbolTable.get(name) != null) {
-            throw new AnalyzeError(ErrorCode.DuplicateDeclaration, curPos);
-        } else {
-            symbolTable.put(name, new SymbolEntry(isConstant, isInitialized, isFunction, typeToken.getTokenType()));
-        }
-    }
-
-    /**
-     * 添加一个函数符号
-     * @param name
-     * @param curPos
-     * @param typeToken
-     * @throws AnalyzeError
-     */
-    private void addSymbol(String name, Pos curPos, Token typeToken) throws AnalyzeError {
-        // 默认加入前一个符号表
-        HashMap<String, SymbolEntry> symbolTable = indexTable.get(indexTable.size() - 2);
-        if (symbolTable.get(name) != null) {
-            throw new AnalyzeError(ErrorCode.DuplicateDeclaration, curPos);
-        } else {
-            symbolTable.put(name, new SymbolEntry(false, false, true, typeToken.getTokenType()));
-        }
-    }
-
-
-
 
     /**
      * 获取变量是否是常量
@@ -270,7 +178,7 @@ public final class Analyser {
                 break;
             }
         }
-        if(findSymbol("main") == null) { // 检测main函数是否存在
+        if(symbolTable.findSymbol("main") == null) { // 检测main函数是否存在
             throw new AnalyzeError(ErrorCode.NoMainFunction, "xxxx");
         }
         expect(TokenType.EOF);
@@ -317,7 +225,7 @@ public final class Analyser {
         expect(TokenType.Semicolon);
 
         String name = (String) nameToken.getValue();
-        addSymbol(name, initialized, false, false, nameToken.getStartPos(), type);
+        symbolTable.addSymbolVariable(name, initialized, false,  nameToken.getStartPos(), type);
         // 如果没有初始化则不管，等报错
     }
 
@@ -337,7 +245,7 @@ public final class Analyser {
         expect(TokenType.Colon);
         var type = expect(TokenType.INT);
 
-        addSymbol(name, true, true, false, nameToken.getStartPos(), type);
+        symbolTable.addSymbolVariable(name, true, true, nameToken.getStartPos(), type);
 
         // = 等号
         expect(TokenType.Eq);
@@ -366,7 +274,8 @@ public final class Analyser {
         expect(TokenType.LParen);
 
         // 添加符号表
-        this.indexTable.add(new HashMap<>());
+        symbolTable.addNewMap();
+
         if(!check(TokenType.RParen)) { // 如果下一个不是右括号
             analyseFunctionParamList();
         }
@@ -374,12 +283,12 @@ public final class Analyser {
         expect(TokenType.Arrow);
 
         var type = expect(TokenType.INT, TokenType.VOID);  // 返回值类型
-        addSymbol(name, nameToken.getStartPos(), type);  // 添加到前一层符号表
-        currentFuncName = name;  // 改变当前函数名称，用于return的时候check type
+        symbolTable.addSymbolFunc(name, nameToken.getStartPos(), type);  // 添加到前一层符号表
+        symbolTable.currentFuncName = name;  // 改变当前函数名称，用于return的时候check type
         analyseBlockStatement(false); // 无需再建表了
 
         // 删除符号表
-        indexTable.remove(indexTable.get(indexTable.size()-1));
+        symbolTable.removeMap();
     }
 
     /**
@@ -410,7 +319,7 @@ public final class Analyser {
 
         // 加入符号表
         String name = (String) nameToken.getValue();
-        addSymbol(name, true, isConst, false, nameToken.getStartPos(), type);
+        symbolTable.addSymbolParam(name, isConst, nameToken.getStartPos(), type);
     }
 
     /**
@@ -420,7 +329,7 @@ public final class Analyser {
         expect(TokenType.LBrace);
         // 创建符号表
         if(NeedNewMap) { // 从非函数入口进入需要new table
-            indexTable.add(new HashMap<>());
+            symbolTable.addNewMap();
         }
 
         while(true) {
@@ -433,7 +342,7 @@ public final class Analyser {
 
         expect(TokenType.RBrace);
         if(NeedNewMap) {
-            indexTable.remove(indexTable.get(indexTable.size()-1)); // 删除符号表
+            symbolTable.removeMap(); // 删除符号表
         }
     }
 
@@ -480,7 +389,7 @@ public final class Analyser {
     private void analyseIfStatement() throws CompileError {
         expect(TokenType.IF_KW);
         var type = analyseExpression(1);
-        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName);
+        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
         instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 else 处
         int index1 = instructions.size() - 1;
 
@@ -508,7 +417,7 @@ public final class Analyser {
     private void analyseWhileStatement() throws CompileError {
         expect(TokenType.WHILE_KW);
         var type = analyseExpression(1); // condition
-        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName);
+        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
 
         instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 while 外面
         int index1 = instructions.size() - 1;
@@ -521,15 +430,15 @@ public final class Analyser {
         instructions.set(index1, new Instruction(Operation.JUMP, offset));
     }
 
-    private void analyseReturnStatement() throws CompileError {
+    private void analyseReturnStatement() throws CompileError {  // TODO gai
         expect(TokenType.RETURN_KW);
         TokenType type = TokenType.VOID;
         if(nextIf(TokenType.Semicolon) == null) { // 如果有返回值
             type = analyseExpression(1);
         }
         // 如果不一致
-        if(findSymbol(currentFuncName).type != type) {
-            throw new AnalyzeError(ErrorCode.ReturnTypeError, currentFuncName);
+        if(symbolTable.findSymbol(symbolTable.currentFuncName).type != type) {
+            throw new AnalyzeError(ErrorCode.ReturnTypeError, symbolTable.currentFuncName);
         }
         instructions.add(new Instruction(Operation.RET));
     }
@@ -552,7 +461,7 @@ public final class Analyser {
             String name = (String) nameToken.getValue();
             if(nextIf(TokenType.Assign) != null) {  // assign_expr -> IDENT '=' expr 赋值语句
                 var type = analyseExpression(1);
-                var symbol = findSymbol(name);
+                var symbol = symbolTable.findSymbol(name);
                 if (symbol == null) {
                     // 没有这个标识符
                     throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
@@ -571,7 +480,7 @@ public final class Analyser {
                 instructions.add(new Instruction(Operation.STO)); // TODO 需要把addr push进去吗
                 return TokenType.VOID;
             } else if(nextIf(TokenType.LParen) != null) {  // call_expr -> IDENT '(' call_param_list? ')'
-                var symbol = findSymbol(name);
+                var symbol = symbolTable.findSymbol(name);
                 if (symbol == null) {
                     // 没有这个标识符
                     throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
@@ -587,8 +496,8 @@ public final class Analyser {
                     analyseCallParamList();
                 }
 
-                if(standardFunction.get(name) != null) {  // 是否是标准函数
-                    instructions.add(new Instruction(StandardOP.get(name)));
+                if(symbolTable.standardFunction.get(name) != null) {  // 是否是标准函数
+                    instructions.add(new Instruction(symbolTable.StandardOP.get(name)));
                 } else {
                     instructions.add(new Instruction(Operation.CALL));
                 }
@@ -637,7 +546,7 @@ public final class Analyser {
      * 这儿IDent一定在 = 右边，需要初始化
      */
     private TokenType analyseIdentExpression(String name, Token nameToken) throws CompileError {
-        var symbol = findSymbol(name);
+        var symbol = symbolTable.findSymbol(name);
         if (symbol == null) {
             // 没有这个标识符
             throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());

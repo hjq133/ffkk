@@ -9,9 +9,9 @@ public class SymbolEntry {
     boolean isFunction;
     TokenType type;
 
-    public SymbolEntry(boolean isConstant, boolean isDeclared, boolean isFunction, TokenType type) {
+    public SymbolEntry(boolean isConstant, boolean isInitialized, boolean isFunction, TokenType type) {
         this.isConstant = isConstant;
-        this.isInitialized = isDeclared;
+        this.isInitialized = isInitialized;
         this.type = type;
         this.isFunction = isFunction;
     }
