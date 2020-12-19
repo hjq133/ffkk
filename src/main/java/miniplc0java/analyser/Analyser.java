@@ -270,7 +270,7 @@ public final class Analyser {
                 break;
             }
         }
-        if(findSymbol("main") == null) {
+        if(findSymbol("main") == null) { // 检测main函数是否存在
             throw new AnalyzeError(ErrorCode.NoMainFunction, "xxxx");
         }
         expect(TokenType.EOF);
@@ -309,7 +309,8 @@ public final class Analyser {
         if (nextIf(TokenType.Eq) != null) {
             // 分析初始化的表达式
             initialized = true;
-            analyseExpression(1); // TODO 如果存在初始化表达式，类型应当与声明时相同
+            var type1 = analyseExpression(1); // 如果存在初始化表达式，类型应当与声明时相同
+            if(type1 != type.getTokenType()) throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
         }
 
         // 分号
@@ -326,8 +327,6 @@ public final class Analyser {
     private void analyseConstDeclare() throws CompileError {
         expect(TokenType.CONST_KW);
 
-        System.out.println("analyse Constant declare");
-
         // 变量名
         var nameToken = expect(TokenType.Ident);
 
@@ -336,7 +335,7 @@ public final class Analyser {
 
         // : 冒号
         expect(TokenType.Colon);
-        var type = expect(TokenType.INT, TokenType.VOID);
+        var type = expect(TokenType.INT);
 
         addSymbol(name, true, true, false, nameToken.getStartPos(), type);
 
@@ -344,7 +343,8 @@ public final class Analyser {
         expect(TokenType.Eq);
 
         // 常表达式
-        analyseExpression(1);
+        var type1 = analyseExpression(1);
+        if(type1 != type.getTokenType()) throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
 
         // 分号
         expect(TokenType.Semicolon);
@@ -367,14 +367,16 @@ public final class Analyser {
 
         // 添加符号表
         this.indexTable.add(new HashMap<>());
-        analyseFunctionParamList();
+        if(!check(TokenType.RParen)) { // 如果下一个不是右括号
+            analyseFunctionParamList();
+        }
         expect(TokenType.RParen);
         expect(TokenType.Arrow);
 
         var type = expect(TokenType.INT, TokenType.VOID);  // 返回值类型
-        addSymbol(name, nameToken.getStartPos(), type);
-        currentFuncName = name;
-        analyseBlockStatement();
+        addSymbol(name, nameToken.getStartPos(), type);  // 添加到前一层符号表
+        currentFuncName = name;  // 改变当前函数名称，用于return的时候check type
+        analyseBlockStatement(false); // 无需再建表了
 
         // 删除符号表
         indexTable.remove(indexTable.get(indexTable.size()-1));
@@ -404,7 +406,7 @@ public final class Analyser {
         expect(TokenType.Colon);
 
         // 类型
-        var type = expect(TokenType.INT, TokenType.VOID);
+        var type = expect(TokenType.INT);
 
         // 加入符号表
         String name = (String) nameToken.getValue();
@@ -413,12 +415,14 @@ public final class Analyser {
 
     /**
      * block_stmt -> '{' stmt* '}'
-     * TODO 如何解决这个0和多次的问题？？
      */
-    private void analyseBlockStatement() throws CompileError {
+    private void analyseBlockStatement(boolean NeedNewMap) throws CompileError {
         expect(TokenType.LBrace);
         // 创建符号表
-        indexTable.add(new HashMap<>());
+        if(NeedNewMap) { // 从非函数入口进入需要new table
+            indexTable.add(new HashMap<>());
+        }
+
         while(true) {
             if(check(TokenType.RBrace)){
                 break;
@@ -426,10 +430,11 @@ public final class Analyser {
                 analyseStatement();
             }
         }
+
         expect(TokenType.RBrace);
-        HashMap<String, SymbolEntry> map = indexTable.get(indexTable.size()-1);
-        indexTable.remove(map);
-        // 删除符号表
+        if(NeedNewMap) {
+            indexTable.remove(indexTable.get(indexTable.size()-1)); // 删除符号表
+        }
     }
 
     /**
@@ -452,7 +457,7 @@ public final class Analyser {
         } else if(check(TokenType.LET_KW) || check(TokenType.CONST_KW)) {
             analyseDeclareStatement();
         } else if(check(TokenType.LBrace)) {
-            analyseBlockStatement();
+            analyseBlockStatement(true);
         } else if(check(TokenType.Semicolon)) {
             expect(TokenType.Semicolon);
         } else {
@@ -474,12 +479,13 @@ public final class Analyser {
      */
     private void analyseIfStatement() throws CompileError {
         expect(TokenType.IF_KW);
-        analyseExpression(1);
+        var type = analyseExpression(1);
+        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName); // TODO 是否有其他不是int的情况？
         instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 else 处
         int index1 = instructions.size() - 1;
 
-        analyseBlockStatement();
-        instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 最后
+        analyseBlockStatement(false); // TODO 是否需要new一个新的作用域
+        instructions.add(new Instruction(Operation.JUMP, 0)); // TODO 如果condition为0，那么jump 到 else 结束
         int index2 = instructions.size() - 1;
 
         if(nextIf(TokenType.ELSE_KW) != null) {
@@ -488,11 +494,11 @@ public final class Analyser {
             }
             else {
                 var offset = instructions.size() - 1 - index1;
-                instructions.set(index1, new Instruction(Operation.JUMP, offset));
-                analyseBlockStatement();
+                instructions.set(index1, new Instruction(Operation.JUMP, offset)); // TODO check一下这个offset
+                analyseBlockStatement(false); // TODO 是否需要new一个新的作用域
             }
         }
-        var offset = instructions.size() - 1 - index2;
+        var offset = instructions.size() - 1 - index2;  // TODO check一下这个offset
         instructions.set(index2, new Instruction(Operation.JUMP, offset));
     }
 
@@ -501,13 +507,15 @@ public final class Analyser {
      */
     private void analyseWhileStatement() throws CompileError {
         expect(TokenType.WHILE_KW);
-        analyseExpression(1); // condition
+        var type = analyseExpression(1); // condition
+        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName); // TODO 是否有其他不是int的情况？
+
         instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 while 外面
         int index1 = instructions.size() - 1;
 
-        analyseBlockStatement();
+        analyseBlockStatement(false); // TODO 是否需要new一个新的作用域
 
-        instructions.add(new Instruction(Operation.NOCONJUMP, index1 - (instructions.size() - 1))); // 无条件跳转到while开头
+        instructions.add(new Instruction(Operation.NOCONJUMP, index1 - (instructions.size() - 1))); // 无条件跳转到while开头 TODO check 一下offset
 
         int offset = instructions.size() - 1 - index1;
         instructions.set(index1, new Instruction(Operation.JUMP, offset));
