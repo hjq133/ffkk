@@ -30,7 +30,6 @@ public final class Analyser {
      * 优先矩阵表
      */
     HashMap<String, Integer> OPPrec = new HashMap<String, Integer>();
-    HashMap<String, Operation> String2OP = new HashMap<>();
 
     public Analyser(Tokenizer tokenizer) {
         this.tokenizer = tokenizer;
@@ -47,17 +46,6 @@ public final class Analyser {
         this.OPPrec.put("<=", 1);
         this.OPPrec.put("==", 1);
         this.OPPrec.put("!=", 1);
-
-        this.String2OP.put("*", Operation.MUL);
-        this.String2OP.put("/", Operation.DIV);
-        this.String2OP.put("+", Operation.ADD);
-        this.String2OP.put("-", Operation.SUB);
-        this.String2OP.put(">", Operation.GT);
-        this.String2OP.put("<", Operation.LT);
-        this.String2OP.put(">=", Operation.LE);
-        this.String2OP.put("<=", Operation.GE);
-        this.String2OP.put("==", Operation.EQ);
-        this.String2OP.put("!=", Operation.NEQ);
     }
 
     /**
@@ -160,7 +148,7 @@ public final class Analyser {
     }
 
     /**
-     *
+     * 检查符号的index并添加instruction（globa，loca， arga）
      */
     private void addSymbolInstruction(SymbolEntry symbol) {
         int index;
@@ -170,6 +158,41 @@ public final class Analyser {
             instructions.add(new Instruction(Operation.LOCA, symbol.index));
         } else {
             instructions.add(new Instruction(Operation.ARGA, symbol.index));
+        }
+    }
+
+    /**
+     * 添加二元运算符的instrucion
+     */
+    private void addBinaryOPInstruction(String op) throws AnalyzeError{
+        switch (op) {
+            case "+":
+                instructions.add(new Instruction(Operation.ADD));
+                break;
+            case "-":
+                instructions.add(new Instruction(Operation.SUB));
+                break;
+            case "/":
+                instructions.add(new Instruction(Operation.DIV));
+                break;
+            case "*":
+                instructions.add(new Instruction(Operation.MUL));
+                break;
+            case ">":
+            case "<=":
+                instructions.add(new Instruction(Operation.CMP));
+                instructions.add(new Instruction(Operation.SETGT));
+                break;
+            case "<":
+            case ">=":
+                instructions.add(new Instruction(Operation.CMP));
+                instructions.add(new Instruction(Operation.SETLT));
+                break;
+            case "==":
+                instructions.add(new Instruction(Operation.CMP));
+                instructions.add(new Instruction(Operation.NOT));
+            case "!=":
+                instructions.add(new Instruction(Operation.CMP));
         }
     }
 
@@ -650,14 +673,13 @@ public final class Analyser {
                 TokenType rightType;
                 if(check(TokenType.Minus)) {
                     rightType = analyseNegateExpression();
-
                 } else {
                     rightType = analyseExpression(nextMinPrec);
                 }
                 if(leftType != rightType) {
                     throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
                 }
-                instructions.add(new Instruction(String2OP.get(op)));
+                addBinaryOPInstruction(op);
             }
         }
         return TokenType.INT;

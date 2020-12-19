@@ -9,12 +9,7 @@ public enum Operation {
     SUB,
     MUL,
     DIV,
-    EQ,
-    NEQ,
-    LT, // <
-    GT, // >
-    LE, // <=
-    GE, // >=
+    NOT,
     CALL,
     STACKALLOC,
     JUMP, // 条件跳转
@@ -28,6 +23,9 @@ public enum Operation {
     LOCA,
     ARGA,
     GLOBA,
+    CMP,
+    SETLT,
+    SETGT,
     NEG,
     POP,
     RET,
