@@ -25,6 +25,9 @@ public enum Operation {
     PRINTLN,
     SCANI,
     SCANC,
+    LOCA,
+    ARGA,
+    GLOBA,
     RET,
     WRT
 }

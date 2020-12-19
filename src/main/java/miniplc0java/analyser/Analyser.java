@@ -458,7 +458,7 @@ public final class Analyser {
             analyseDeclareStatement();
         } else if(check(TokenType.LBrace)) {
             analyseBlockStatement(true);
-        } else if(check(TokenType.Semicolon)) {
+        } else if(check(TokenType.Semicolon)) { // empty_stmt
             expect(TokenType.Semicolon);
         } else {
             analyseExpressionStatement();
@@ -470,7 +470,7 @@ public final class Analyser {
      * expr_stmt -> expr ';'
      */
     private void analyseExpressionStatement() throws CompileError{
-        analyseExpression(1);
+        analyseExpression(1); // TODO 表达式如果有值，将会被丢弃
         expect(TokenType.Semicolon);
     }
 
@@ -480,11 +480,11 @@ public final class Analyser {
     private void analyseIfStatement() throws CompileError {
         expect(TokenType.IF_KW);
         var type = analyseExpression(1);
-        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName); // TODO 是否有其他不是int的情况？
+        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName);
         instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 else 处
         int index1 = instructions.size() - 1;
 
-        analyseBlockStatement(false); // TODO 是否需要new一个新的作用域
+        analyseBlockStatement(true);
         instructions.add(new Instruction(Operation.JUMP, 0)); // TODO 如果condition为0，那么jump 到 else 结束
         int index2 = instructions.size() - 1;
 
@@ -495,7 +495,7 @@ public final class Analyser {
             else {
                 var offset = instructions.size() - 1 - index1;
                 instructions.set(index1, new Instruction(Operation.JUMP, offset)); // TODO check一下这个offset
-                analyseBlockStatement(false); // TODO 是否需要new一个新的作用域
+                analyseBlockStatement(true);
             }
         }
         var offset = instructions.size() - 1 - index2;  // TODO check一下这个offset
@@ -508,12 +508,12 @@ public final class Analyser {
     private void analyseWhileStatement() throws CompileError {
         expect(TokenType.WHILE_KW);
         var type = analyseExpression(1); // condition
-        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName); // TODO 是否有其他不是int的情况？
+        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, currentFuncName);
 
         instructions.add(new Instruction(Operation.JUMP, 0)); // jump 到 while 外面
         int index1 = instructions.size() - 1;
 
-        analyseBlockStatement(false); // TODO 是否需要new一个新的作用域
+        analyseBlockStatement(true);
 
         instructions.add(new Instruction(Operation.NOCONJUMP, index1 - (instructions.size() - 1))); // 无条件跳转到while开头 TODO check 一下offset
 
@@ -523,26 +523,35 @@ public final class Analyser {
 
     private void analyseReturnStatement() throws CompileError {
         expect(TokenType.RETURN_KW);
-        if(nextIf(TokenType.Semicolon) == null) {
-            analyseExpression(1);
-        } else {  // 返回值为空
-            if(findSymbol(currentFuncName).type != TokenType.VOID) {
-                throw new AnalyzeError(ErrorCode.ReturnTypeError, currentFuncName);
-            }
+        TokenType type = TokenType.VOID;
+        if(nextIf(TokenType.Semicolon) == null) { // 如果有返回值
+            type = analyseExpression(1);
         }
-        // 返回值不为空，为int
-        if(findSymbol(currentFuncName).type != TokenType.INT) {
+        // 如果不一致
+        if(findSymbol(currentFuncName).type != type) {
             throw new AnalyzeError(ErrorCode.ReturnTypeError, currentFuncName);
         }
         instructions.add(new Instruction(Operation.RET));
     }
 
+    /**
+     * computeAtom ->
+     *     assign_expr
+     *     | call_expr
+     *     | ident_expr
+     *     | negate_expr
+     *     | literal_expr
+     *     | group_expr
+     *
+     * @return
+     * @throws CompileError
+     */
     private TokenType computeAtom() throws CompileError {
         if(check(TokenType.Ident)) {
             var nameToken = expect(TokenType.Ident);
             String name = (String) nameToken.getValue();
             if(nextIf(TokenType.Assign) != null) {  // assign_expr -> IDENT '=' expr 赋值语句
-                analyseExpression(1);
+                var type = analyseExpression(1);
                 var symbol = findSymbol(name);
                 if (symbol == null) {
                     // 没有这个标识符
@@ -553,10 +562,13 @@ public final class Analyser {
                 } else if (symbol.isFunction) {
                     // 标识符是函数
                     throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
+                } else if(symbol.type != type) {
+                    throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
                 }
                 // 设置符号已初始化
                 symbol.setInitialized(true);
-                instructions.add(new Instruction(Operation.STO));
+                instructions.add(new Instruction(Operation.LOD));
+                instructions.add(new Instruction(Operation.STO)); // TODO 需要把addr push进去吗
                 return TokenType.VOID;
             } else if(nextIf(TokenType.LParen) != null) {  // call_expr -> IDENT '(' call_param_list? ')'
                 var symbol = findSymbol(name);
@@ -583,19 +595,7 @@ public final class Analyser {
                 return symbol.type;
 
             } else {  // IDENT
-                var symbol = findSymbol(name);
-                if (symbol == null) {
-                    // 没有这个标识符
-                    throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
-                } else if (symbol.isInitialized != true) {
-                    // 标识符没有初始化
-                    throw new AnalyzeError(ErrorCode.NotInitialized, /* 当前位置 */ nameToken.getStartPos());
-                } else if (symbol.isFunction) {
-                    // 标识符是函数
-                    throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
-                }
-                instructions.add(new Instruction(Operation.LOD));
-                return symbol.type;
+                return analyseIdentExpression(name, nameToken);
             }
 
         } else if(check(TokenType.Minus)) {  // negate_expr -> '-' expr
@@ -632,6 +632,29 @@ public final class Analyser {
         }
     }
 
+    /**
+     * ident_expr -> IDENT
+     * 这儿IDent一定在 = 右边，需要初始化
+     */
+    private TokenType analyseIdentExpression(String name, Token nameToken) throws CompileError {
+        var symbol = findSymbol(name);
+        if (symbol == null) {
+            // 没有这个标识符
+            throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
+        } else if (symbol.isInitialized != true) {
+            // 标识符没有初始化
+            throw new AnalyzeError(ErrorCode.NotInitialized, /* 当前位置 */ nameToken.getStartPos());
+        } else if (symbol.isFunction) {
+            // 标识符是函数
+            throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
+        }
+        instructions.add(new Instruction(Operation.LOD));
+        return symbol.type;
+    }
+
+    /**
+     * expr -> computeAtom (operator_expr | as_expr)
+     */
     private TokenType analyseExpression(int minPrec) throws CompileError {
         var leftType = computeAtom();
         if(check(TokenType.AS_KW)) { // as_expr -> expr 'as' ty
