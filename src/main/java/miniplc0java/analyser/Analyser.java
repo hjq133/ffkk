@@ -265,6 +265,7 @@ public final class Analyser {
         expect(TokenType.LET_KW);
 
         var nameToken = expect(TokenType.Ident);
+        String name = (String) nameToken.getValue();
 
         // : 冒号
         expect(TokenType.Colon);
@@ -272,21 +273,16 @@ public final class Analyser {
 
         // 变量初始化了吗
         boolean initialized = false;
+        symbolTable.addSymbolVariable(name, initialized, false,  nameToken.getStartPos(), type);
 
         // 下个 token 是等于号吗？如果是的话分析初始化
         if (nextIf(TokenType.Assign) != null) {
             // 分析初始化的表达式
-            initialized = true;
-            var type1 = analyseExpression(1); // 如果存在初始化表达式，类型应当与声明时相同
-            if(type1 != type.getTokenType()) throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
+            analyseAssignExpression(nameToken.getValueString(), nameToken);
         }
 
         // 分号
         expect(TokenType.Semicolon);
-
-        String name = (String) nameToken.getValue();
-        symbolTable.addSymbolVariable(name, initialized, false,  nameToken.getStartPos(), type);
-        // 如果没有初始化则不管，等报错
     }
 
     /**
@@ -628,7 +624,6 @@ public final class Analyser {
      * @throws CompileError
      */
     private TokenType analyseAssignExpression(String name, Token nameToken) throws CompileError{
-        var type = analyseExpression(1);
         var symbol = symbolTable.findSymbol(name);
         if (symbol == null) {
             // 没有这个标识符
@@ -639,13 +634,18 @@ public final class Analyser {
         } else if (symbol.isFunction) {
             // 标识符是函数
             throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
-        } else if(symbol.type != type) {
-            throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
         }
+
         // 设置符号已初始化
         symbol.setInitialized(true);
-
+        // 压入地址
         addSymbolInstruction(symbol);
+
+        var type = analyseExpression(1);
+        if(symbol.type != type) {
+            throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
+        }
+
         instructions.add(new Instruction(Operation.STO));
         return TokenType.VOID;
     }
@@ -696,7 +696,7 @@ public final class Analyser {
                 var token = peek();
                 String name = token.getValue().toString();
                 if (OPPrec.get(name) == null || OPPrec.get(name) < minPrec) {
-                    return TokenType.INT;
+                    return leftType;
                 }
                 next();
                 String op = token.getValue().toString();

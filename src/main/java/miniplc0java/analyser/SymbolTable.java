@@ -75,7 +75,7 @@ public class SymbolTable {
         }
         else { // 加入局部表
             entry.level = 2;
-            entry.index = indexTableLocal.size();
+            entry.index = indexTableLocal.get(indexTableLocal.size() - 1).size(); // 从0开始编号
             addSymbol(name, entry, curPos, indexTableLocal.get(indexTableLocal.size() - 1));
         }
     }
@@ -103,7 +103,7 @@ public class SymbolTable {
      * @throws AnalyzeError
      */
     public void addSymbolParam(String name, boolean isConstant, Pos curPos, Token typeToken) throws AnalyzeError {
-        int index = indexTableParam.get(indexTableParam.size() - 1).size() + 1; // 多算一个
+        int index = indexTableParam.get(indexTableParam.size() - 1).size() + 1; // 多算一个，前面有个返回地址
         SymbolEntry entry = new SymbolEntry(isConstant, true, false, typeToken.getTokenType(), 3, index);
         addSymbol(name, entry, curPos, indexTableParam.get(indexTableParam.size() - 1));
     }
