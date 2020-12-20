@@ -84,13 +84,17 @@ public class App {
             System.exit(0);
             return;
         }
+
+        var translator = new Translator(analyzer.instructions, analyzer.symbolTable.indexMapGlobal, output);
+        translator.translate();
         for(int i=0; i < analyzer.instructions.size(); i++) {
             Instruction ins = analyzer.instructions.get(i);
             System.out.println(i + " : " + ins);
         }
-        for (Instruction instruction : instructions) {
-            output.println(instruction.toString());
-        }
+        System.out.println("finish");
+//        for (Instruction instruction : instructions) {
+//            output.println(instruction.toString());
+//        }
     }
 
     private static ArgumentParser buildArgparse() {

@@ -19,7 +19,7 @@ public final class Analyser {
 
     Tokenizer tokenizer;
     public ArrayList<Instruction> instructions;
-    SymbolTable symbolTable;
+    public SymbolTable symbolTable;
 
     /**
      * 当前偷看的 token
