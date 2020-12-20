@@ -18,13 +18,6 @@ public class Token {
         this.endPos = endPos;
     }
 
-    public Token(Token token) {
-        this.tokenType = token.tokenType;
-        this.value = token.value;
-        this.startPos = token.startPos;
-        this.endPos = token.endPos;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o)

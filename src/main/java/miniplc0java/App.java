@@ -75,6 +75,10 @@ public class App {
             instructions = analyzer.analyse();
         } catch (Exception e) {
             // 遇到错误不输出，直接退出
+//            for(Instruction ins: analyzer.instructions) {
+//                System.out.println(ins);
+//            }
+            System.out.println(analyzer.instructions);
             System.err.println(e);
             System.exit(0);
             return;

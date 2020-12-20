@@ -66,7 +66,6 @@ public class Tokenizer {
         }
     }
 
-    // TODO done!
     private Token lexUInt() throws TokenizeError {
         // 请填空：
         String val = "";
@@ -84,46 +83,50 @@ public class Tokenizer {
         Pos end = it.currentPos();
         // 解析存储的字符串为无符号整数
         // 解析成功则返回无符号整数类型的token，否则返回编译错误
-        try { // TODO 转换为无符号整数 ?　这玩意儿怎么可能转换失败 ?
-            Token token = new Token(TokenType.Uint, Integer.parseInt(val), begin, end);
-            return token;
+        try {
+            return new Token(TokenType.Uint, Integer.parseInt(val), begin, end);
         } catch (Exception e) {
             throw new TokenizeError(ErrorCode.InvalidInput, begin);
         }
         // Token 的 Value 应填写数字的值
     }
 
-    // Todo new 检查是否是string
     private Token lexString() throws TokenizeError {
         String val = "";
         char peek = it.peekChar();
+        char ch;
         Pos begin = it.currentPos();
         if (peek  != '\"') {
             throw new TokenizeError(ErrorCode.InvalidInput, begin);
         }
         it.nextChar();
         peek = it.peekChar();
-        while(peek != '\"') { // TODO 如何停止，'''和'\''的区别？
+        while(peek != '\"') {
             it.nextChar();
             if(peek == '\\') {  // 转义字符
-                val = val + peek;
                 peek = it.peekChar();
-                if(peek == '\\' || peek == '\"' || peek == '\'' || peek == 'n' || peek == 'r' || peek == 't') {
-                    it.nextChar();
-                }else {
-                    throw new TokenizeError(ErrorCode.InvalidInput, begin);
-                }
+                ch = switch (peek) {
+                    case '\\' -> '\\';
+                    case '\"' -> '\"';
+                    case '\'' -> '\'';
+                    case 'n' -> '\n';
+                    case 'r' -> '\r';
+                    case 't' -> '\t';
+                    default -> throw new TokenizeError(ErrorCode.InvalidInput, begin);
+                };
+                it.nextChar();
+                peek = ch;
             }
             val = val + peek;
             peek = it.peekChar();
         }
+        it.nextChar();
         Pos end = it.currentPos();
         return new Token(TokenType.String, val, begin, end);
     }
 
-    // Todo new 检查是否是Char
     private Token lexChar() throws TokenizeError {
-        String val = " ";
+        String val = "";
         char peek = it.peekChar();
         Pos begin = it.currentPos();
         if (peek  != '\'') {
@@ -151,7 +154,15 @@ public class Tokenizer {
         }
         it.nextChar();
         Pos end = it.currentPos();
-        return new Token(TokenType.Char, val, begin, end);
+        return switch (val) {
+            case "\\n" -> new Token(TokenType.Char, '\n', begin, end);
+            case "\\r" -> new Token(TokenType.Char, '\r', begin, end);
+            case "\\t" -> new Token(TokenType.Char, '\t', begin, end);
+            case "\\\\" -> new Token(TokenType.Char, '\\', begin, end);
+            case "\\'" -> new Token(TokenType.Char, '\'', begin, end);
+            case "\\\"" -> new Token(TokenType.Char, '\"', begin, end);
+            default -> new Token(TokenType.Char, val.charAt(0), begin, end);
+        };
     }
 
     // TODO done!

@@ -5,24 +5,26 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a7ebd99a-57df-4789-b3f1-8079c45bf7f3" name="Default Changelist" comment="">
+      <change afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/testTokenizer.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/judge.toml" beforeDir="false" afterPath="$PROJECT_DIR$/judge.toml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/App.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/App.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser$1.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/testAnalyser.class" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/AnalyzeError.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/AnalyzeError.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/ErrorCode.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/error/ErrorCode.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolTable.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolTable.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction$1.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Instruction.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Operation.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/instruction/Operation.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType$1.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/TokenType.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer$1.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer$1.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Token.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Token.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/tokenizer/Tokenizer.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/vm/MiniVm$1.class" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/vm/MiniVm.class" beforeDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/App.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolTable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolTable.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/instruction/Instruction.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/instruction/Instruction.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/instruction/Operation.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/instruction/Operation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/tokenizer/Token.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/tokenizer/Token.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/tokenizer/Tokenizer.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/tokenizer/Tokenizer.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/vm/MiniVm.java" beforeDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -161,7 +163,6 @@
     </panes>
   </component>
   <component name="ProjectViewState">
-    <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
   <component name="PropertiesComponent">
@@ -219,6 +220,20 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="testTokenizer" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="miniplc0java.analyser.testTokenizer" />
+      <module name="miniplc0java.main" />
+      <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="miniplc0java.analyser.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration default="true" type="ArquillianJUnit" factoryName="" nameIsGenerated="true">
       <option name="arquillianRunConfiguration">
         <value>
@@ -258,10 +273,12 @@
     <list>
       <item itemvalue="Application.App" />
       <item itemvalue="Application.testAnalyser" />
+      <item itemvalue="Application.testTokenizer" />
     </list>
     <recent_temporary>
       <list>
         <item itemvalue="Application.App" />
+        <item itemvalue="Application.testTokenizer" />
         <item itemvalue="Application.testAnalyser" />
       </list>
     </recent_temporary>
@@ -294,7 +311,7 @@
       <workItem from="1608114868445" duration="6143000" />
       <workItem from="1608170425347" duration="32236000" />
       <workItem from="1608251241922" duration="33323000" />
-      <workItem from="1608306772577" duration="38074000" />
+      <workItem from="1608306772577" duration="55912000" />
     </task>
     <servers />
   </component>
@@ -359,8 +376,23 @@
       <breakpoints>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java</url>
-          <line>214</line>
-          <option name="timeStamp" value="27" />
+          <line>631</line>
+          <option name="timeStamp" value="63" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java</url>
+          <line>630</line>
+          <option name="timeStamp" value="64" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java</url>
+          <line>284</line>
+          <option name="timeStamp" value="66" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java</url>
+          <line>674</line>
+          <option name="timeStamp" value="67" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

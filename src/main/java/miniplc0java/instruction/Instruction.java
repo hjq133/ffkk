@@ -5,29 +5,17 @@ import java.util.Objects;
 public class Instruction {
     private Operation opt;
     Integer x;
-    String y;
 
     public Instruction(Operation opt) {
         this.opt = opt;
         this.x = 0;
-        this.y = null;
     }
 
     public Instruction(Operation opt, Integer x) {
         this.opt = opt;
         this.x = x;
-        this.y = null;
     }
 
-    public Instruction(Operation opt, String y) {
-        this.opt = opt;
-        this.y = y;
-    }
-
-    public Instruction() {
-        this.opt = Operation.LIT;
-        this.x = 0;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -63,18 +51,38 @@ public class Instruction {
     @Override
     public String toString() {
         switch (this.opt) {
+            // 没有操作数的
+            case POP:
             case ADD:
             case DIV:
-            case ILL:
             case MUL:
             case SUB:
-            case WRT:
-                return String.format("%s", this.opt);
-            case LIT:
+            case NEG:
+            case NOT:
             case LOD:
             case STO:
+            case RET:
+            case PRINGI:
+            case PRINTC:
+            case PRINTS:
+            case PRINTLN:
+            case SCANI:
+            case SCANC:
+            case SETLT:
+            case SETGT:
+            case CMP:
+                return String.format("%s", this.opt);
+
+            // 操作数为1的
+            case PUSH:
+            case CALL:
+            case BRTRUE:
+            case BRFALSE:
+            case BR:
             case STACKALLOC:
-                if(this.y != null) return String.format("%s %s", this.opt, this.y);
+            case LOCA:
+            case GLOBA:
+            case ARGA:
                 return String.format("%s %s", this.opt, this.x);
             default:
                 return "ILL";

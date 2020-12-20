@@ -18,7 +18,7 @@ import java.util.*;
 public final class Analyser {
 
     Tokenizer tokenizer;
-    ArrayList<Instruction> instructions;
+    public ArrayList<Instruction> instructions;
     SymbolTable symbolTable;
 
     /**
@@ -52,7 +52,12 @@ public final class Analyser {
         analyseProgram();
         return instructions;
     }
-
+    
+    public void addInstructionPrint(Instruction instruction) {
+        instructions.add(instruction);
+        System.out.println(instruction);
+    }
+    
     /**
      * 查看下一个 Token
      *
@@ -183,14 +188,22 @@ public final class Analyser {
                 instructions.add(new Instruction(Operation.MUL));
                 break;
             case ">":
-            case "<=":
                 instructions.add(new Instruction(Operation.CMP));
                 instructions.add(new Instruction(Operation.SETGT));
                 break;
+            case "<=":
+                instructions.add(new Instruction(Operation.CMP));
+                instructions.add(new Instruction(Operation.SETGT));
+                instructions.add(new Instruction(Operation.NOT));
+                break;
             case "<":
+                instructions.add(new Instruction(Operation.CMP));
+                instructions.add(new Instruction(Operation.SETLT));
+                break;
             case ">=":
                 instructions.add(new Instruction(Operation.CMP));
                 instructions.add(new Instruction(Operation.SETLT));
+                instructions.add(new Instruction(Operation.NOT));
                 break;
             case "==":
                 instructions.add(new Instruction(Operation.CMP));
@@ -261,7 +274,7 @@ public final class Analyser {
         boolean initialized = false;
 
         // 下个 token 是等于号吗？如果是的话分析初始化
-        if (nextIf(TokenType.Eq) != null) {
+        if (nextIf(TokenType.Assign) != null) {
             // 分析初始化的表达式
             initialized = true;
             var type1 = analyseExpression(1); // 如果存在初始化表达式，类型应当与声明时相同
@@ -295,7 +308,7 @@ public final class Analyser {
         symbolTable.addSymbolVariable(name, true, true, nameToken.getStartPos(), type);
 
         // = 等号
-        expect(TokenType.Eq);
+        expect(TokenType.Assign);
 
         // 常表达式
         var type1 = analyseExpression(1);
@@ -441,25 +454,29 @@ public final class Analyser {
         expect(TokenType.IF_KW);
         var type = analyseExpression(1);
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
-        instructions.add(new Instruction(Operation.BRFALSE, 0));
+        instructions.add(new Instruction(Operation.BRTRUE, 1));  // 如果condition满足，跳到if block开始
+        instructions.add(new Instruction(Operation.BR, 0)); // 如果condition不满足，跳到else block开始, 或者跳到外面
         int index1 = instructions.size() - 1;
 
         analyseBlockStatement(true);
-        instructions.add(new Instruction(Operation.BR, 0));
-        int index2 = instructions.size() - 1;
 
-        if(nextIf(TokenType.ELSE_KW) != null) {
+        if(nextIf(TokenType.ELSE_KW) != null) { // 有else语句
+            instructions.add(new Instruction(Operation.BR, 0)); // 进入else前跳到末尾
+            int index2 = instructions.size() - 1;
             if(check(TokenType.IF_KW)) {
                 analyseIfStatement();
             }
             else {
                 var offset = instructions.size() - 1 - index1;
-                instructions.set(index1, new Instruction(Operation.BRFALSE, offset));
+                instructions.set(index1, new Instruction(Operation.BR, offset)); // 跳到else语句开始
                 analyseBlockStatement(true);
             }
+            var offset = instructions.size() - 1 - index2; // index2跳到末尾
+            instructions.set(index2, new Instruction(Operation.BR, offset));
+        } else { // 无else语句
+            var offset = instructions.size() - 1 - index1; // 直接跳到外面
+            instructions.set(index1, new Instruction(Operation.BR, offset));
         }
-        var offset = instructions.size() - 1 - index2;
-        instructions.set(index2, new Instruction(Operation.BR, offset));
     }
 
     /**
@@ -540,18 +557,18 @@ public final class Analyser {
         if(check(TokenType.Uint)) {
             var token = expect(TokenType.Uint);
             int value = (int)token.getValue();
-            instructions.add(new Instruction(Operation.LIT, value));
+            instructions.add(new Instruction(Operation.PUSH, value));
             return TokenType.INT;
         } else if(check(TokenType.String)) {
             var token = expect(TokenType.String);
             String value = token.getValue().toString();
-            instructions.add(new Instruction(Operation.LIT, value));
-            return TokenType.String;
+            symbolTable.addSymbolString(value, token.getStartPos(), token);
+            return TokenType.VOID;
         } else if(check(TokenType.Char)) {
             var token = expect(TokenType.Char);
             String value = token.getValue().toString();
-            instructions.add(new Instruction(Operation.LIT, value));  // TODO char 的操作数
-            return TokenType.Char;
+            instructions.add(new Instruction(Operation.PUSH, (Integer)token.getValue()));
+            return TokenType.INT;
         } else {
             throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
         }
@@ -565,7 +582,7 @@ public final class Analyser {
     private TokenType analyseParenExpression() throws CompileError {
         expect(TokenType.Minus);
         // 计算结果需要被 0 减
-        instructions.add(new Instruction(Operation.LIT, 0));
+        instructions.add(new Instruction(Operation.PUSH, 0));
         var type = analyseExpression(1);
         instructions.add(new Instruction(Operation.SUB));
         return type;
@@ -655,6 +672,7 @@ public final class Analyser {
             expect(TokenType.RParen);
         }else {
             analyseCallParamList();
+            expect(TokenType.RParen);
         }
         if(symbolTable.standardFunction.get(name) != null) {  // 是否是标准函数
             instructions.add(new Instruction(symbolTable.StandardOP.get(name)));

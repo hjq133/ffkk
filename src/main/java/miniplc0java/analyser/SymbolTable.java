@@ -1,5 +1,4 @@
 package miniplc0java.analyser;
-
 import miniplc0java.error.AnalyzeError;
 import miniplc0java.error.ErrorCode;
 import miniplc0java.instruction.Operation;
@@ -45,18 +44,11 @@ public class SymbolTable {
         this.standardFunction.put("putchar", TokenType.VOID);
         this.standardFunction.put("putstr", TokenType.VOID);
         this.standardFunction.put("putln", TokenType.VOID);
-
-        for (HashMap.Entry<String, TokenType> entry : standardFunction.entrySet()) { // TODO 是直接提前加进去嘛
-            int index = indexMapGlobal.size();
-            this.indexMapGlobal.put(entry.getKey(), new SymbolEntry(false, false, true, entry.getValue(), 1, index));
-        }
-    }
-
-    /**
-     * 获取symbol的index
-     */
-    private void getSymbolIndex(SymbolEntry symbol, HashMap<String, SymbolEntry> map) throws AnalyzeError {
-
+//
+//        for (HashMap.Entry<String, TokenType> entry : standardFunction.entrySet()) { // TODO 是直接提前加进去嘛
+//            int index = indexMapFunc.size();
+//            this.indexMapFunc.put(entry.getKey(), new SymbolEntry(false, false, true, entry.getValue(), 1, index));
+//        }
     }
 
     /**
@@ -89,6 +81,14 @@ public class SymbolTable {
     }
 
     /**
+     * 添加一个string类型全局变量
+     */
+    public void addSymbolString(String name, Pos curPos, Token typeToken) throws AnalyzeError {
+        SymbolEntry entry = new SymbolEntry(true, true, false, typeToken.getTokenType(), 1, indexMapGlobal.size());
+        addSymbol(name, entry, curPos, indexMapGlobal);
+    }
+
+    /**
      * 添加一个函数符号, 默认加入Func符号表
      * @throws AnalyzeError
      */
@@ -103,7 +103,7 @@ public class SymbolTable {
      * @throws AnalyzeError
      */
     public void addSymbolParam(String name, boolean isConstant, Pos curPos, Token typeToken) throws AnalyzeError {
-        int index = indexMapGlobal.size() + 1; // 多算一个
+        int index = indexTableParam.get(indexTableParam.size() - 1).size() + 1; // 多算一个
         SymbolEntry entry = new SymbolEntry(isConstant, true, false, typeToken.getTokenType(), 3, index);
         addSymbol(name, entry, curPos, indexTableParam.get(indexTableParam.size() - 1));
     }
@@ -120,7 +120,7 @@ public class SymbolTable {
      * 移除一个新的符号表
      */
     public void removeMap() {
-        this.indexTableParam.remove(indexTableParam.get(indexTableParam.size()-1));
+        this.indexTableLocal.remove(indexTableParam.get(indexTableParam.size()-1));
         this.indexTableParam.remove(indexTableLocal.get(indexTableLocal.size()-1));
     }
 
