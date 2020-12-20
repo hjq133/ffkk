@@ -140,23 +140,6 @@ public final class Analyser {
     }
 
     /**
-     * 获取变量是否是常量
-     *
-     * @param name   符号名
-     * @param curPos 当前位置（报错用）
-     * @return 是否为常量
-     * @throws AnalyzeError
-     */
-    private boolean isConstant(String name, Pos curPos, HashMap<String, SymbolEntry> symbolTable) throws AnalyzeError {
-        var entry = symbolTable.get(name);
-        if (entry == null) {
-            throw new AnalyzeError(ErrorCode.NotDeclared, curPos);
-        } else {
-            return entry.isConstant();
-        }
-    }
-
-    /**
      * 检查符号的index并添加instruction（globa，loca， arga）
      */
     private void addSymbolInstruction(SymbolEntry symbol) {
@@ -485,16 +468,15 @@ public final class Analyser {
         var type = analyseExpression(1); // condition
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
 
-        instructions.add(new Instruction(Operation.BRFALSE, 0)); // 如果condition失败了，jump 到 while 外面
+        instructions.add(new Instruction(Operation.BRTRUE, 1));
+        instructions.add(new Instruction(Operation.BR, 0));  // 如果condition失败了，jump 到 while 外面
         int index1 = instructions.size() - 1;
 
         analyseBlockStatement(true);
-
-        //  TODO check 一下offset
-        instructions.add(new Instruction(Operation.BR, index0 - (instructions.size() - 1))); // 无条件跳转到while开头
+        instructions.add(new Instruction(Operation.BR, index0 - (instructions.size() - 1) - 1)); // // 反着跳 无条件跳转到while开头
 
         int offset = instructions.size() - 1 - index1;
-        instructions.set(index1, new Instruction(Operation.BRFALSE, offset));
+        instructions.set(index1, new Instruction(Operation.BR, offset));
     }
 
     private void analyseReturnStatement() throws CompileError {
@@ -559,6 +541,7 @@ public final class Analyser {
             var token = expect(TokenType.String);
             String value = token.getValue().toString();
             symbolTable.addSymbolString(value, token.getStartPos(), token);
+            instructions.add(new Instruction(Operation.PUSH, symbolTable.findSymbol(value).index)); // push index进去
             return TokenType.VOID;
         } else if(check(TokenType.Char)) {
             var token = expect(TokenType.Char);
@@ -655,31 +638,39 @@ public final class Analyser {
      * call_expr -> IDENT '(' call_param_list? ')'
      */
     private TokenType analyseCallExpression(String name, Token nameToken) throws CompileError{
-        var symbol = symbolTable.findSymbol(name);
-        if (symbol == null) {
-            // 没有这个标识符
-            throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
-        } else if(symbol.isFunction == false) {
-            // 不是函数
-            throw new AnalyzeError(ErrorCode.ExpectedFunction, /* 当前位置 */ nameToken.getStartPos());
-        }
-        if(symbol.type != TokenType.VOID) {
-            instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
-        }
+        if(symbolTable.standardFunction.get(name) == null) { // 不是标准库函数
+            var symbol = symbolTable.findSymbol(name);
+            if (symbol == null) {
+                // 没有这个标识符
+                throw new AnalyzeError(ErrorCode.NotDeclared, /* 当前位置 */ nameToken.getStartPos());
+            } else if(symbol.isFunction == false) {
+                // 不是函数
+                throw new AnalyzeError(ErrorCode.ExpectedFunction, /* 当前位置 */ nameToken.getStartPos());
+            }
+            if(symbol.type != TokenType.VOID) {
+                instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
+            }
 
-        expect(TokenType.LParen);
-        if(check(TokenType.RParen)) { // 检查是否有参数列表
-            expect(TokenType.RParen);
-        }else {
-            analyseCallParamList();
-            expect(TokenType.RParen);
-        }
-        if(symbolTable.standardFunction.get(name) != null) {  // 是否是标准函数
-            instructions.add(new Instruction(symbolTable.StandardOP.get(name)));
-        } else {
+            expect(TokenType.LParen);
+            if(check(TokenType.RParen)) { // 检查是否有参数列表
+                expect(TokenType.RParen);
+            }else {
+                analyseCallParamList();
+                expect(TokenType.RParen);
+            }
             instructions.add(new Instruction(Operation.CALL, symbol.index));
+            return symbol.type;
+        } else {  // 是标准库函数
+            expect(TokenType.LParen);
+            if(check(TokenType.RParen)) { // 检查是否有参数列表
+                expect(TokenType.RParen);
+            }else {
+                analyseCallParamList();
+                expect(TokenType.RParen);
+            }
+            instructions.add(new Instruction(symbolTable.StandardOP.get(name)));
+            return symbolTable.standardFunction.get(name);
         }
-        return symbol.type;
     }
 
     /**
