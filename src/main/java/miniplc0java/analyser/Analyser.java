@@ -5,7 +5,6 @@ import miniplc0java.error.CompileError;
 import miniplc0java.error.ErrorCode;
 import miniplc0java.error.ExpectedTokenError;
 import miniplc0java.error.TokenizeError;
-import miniplc0java.instruction.FunctionInstruction;
 import miniplc0java.instruction.Instruction;
 import miniplc0java.instruction.Operation;
 import miniplc0java.tokenizer.Token;
@@ -17,7 +16,7 @@ import java.util.*;
 public final class Analyser {
 
     Tokenizer tokenizer;
-//    public ArrayList<Instruction> instructions;
+    public ArrayList<Instruction> instructions;
     //public ArrayList<FunctionInstruction> funcInstructions;
     public SymbolTable symbolTable;
 
@@ -33,7 +32,7 @@ public final class Analyser {
 
     public Analyser(Tokenizer tokenizer) {
         this.tokenizer = tokenizer;
-//        this.instructions = new ArrayList<>();
+        this.instructions = new ArrayList<>();
         this.symbolTable = new SymbolTable();
 
         this.OPPrec.put("*", 3);
@@ -51,12 +50,12 @@ public final class Analyser {
     public void analyse() throws CompileError {
         analyseProgram();
     }
-    
+
 //    public void addInstructionPrint(Instruction instruction) {
 //        instructions.add(instruction);
 //        System.out.println(instruction);
 //    }
-    
+
     /**
      * 查看下一个 Token
      *
@@ -141,7 +140,7 @@ public final class Analyser {
     /**
      * 检查符号的index并添加instruction（globa，loca， arga）
      */
-    private void addSymbolInstruction(SymbolEntry symbol, ArrayList<Instruction> instructions) {
+    private void addSymbolInstruction(SymbolEntry symbol) {
         int index;
         if(symbol.level == 1) {
             instructions.add(new Instruction(Operation.GLOBA, symbol.index));
@@ -155,7 +154,7 @@ public final class Analyser {
     /**
      * 添加二元运算符的instrucion
      */
-    private void addBinaryOPInstruction(String op, ArrayList<Instruction> instructions) throws AnalyzeError{
+    private void addBinaryOPInstruction(String op) throws AnalyzeError{
         switch (op) {
             case "+":
                 instructions.add(new Instruction(Operation.ADD));
@@ -199,10 +198,9 @@ public final class Analyser {
      * program -> decl_stmt* function*
      */
     private void analyseProgram() throws CompileError {
-        ArrayList<Instruction> globalInstruction = new ArrayList<>();
         while(true) {
-            if(check(TokenType.LET_KW) || check(TokenType.CONST_KW)) {
-                analyseDeclareStatement(globalInstruction);
+            if(check(TokenType.LET_KW) || check(TokenType.CONST_KW)){
+                analyseDeclareStatement();
             } else {
                 break;
             }
@@ -220,23 +218,23 @@ public final class Analyser {
         }
         expect(TokenType.EOF);
         if(symbol.type != TokenType.VOID) {
-            globalInstruction.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
+            instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
         }
-        globalInstruction.add(new Instruction(Operation.CALL, symbol.index));
+        instructions.add(new Instruction(Operation.CALL, symbol.index));
         if(symbol.type != TokenType.VOID) {
-            globalInstruction.add(new Instruction(Operation.POP, 1));
+            instructions.add(new Instruction(Operation.POP, 1));
         }
     }
 
     /**
      * decl_stmt -> let_decl_stmt | const_decl_stmt
      */
-    private void analyseDeclareStatement(ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseDeclareStatement() throws CompileError {
         if(check(TokenType.LET_KW)){
-            analyseLetDeclare(instructions);
+            analyseLetDeclare();
         }
         else {
-            analyseConstDeclare(instructions);
+            analyseConstDeclare();
         }
     }
 
@@ -244,7 +242,7 @@ public final class Analyser {
      * let_decl_stmt -> 'let' IDENT ':' ty ('=' expr)? ';'
      * @throws CompileError
      */
-    private void analyseLetDeclare(ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseLetDeclare() throws CompileError {
         expect(TokenType.LET_KW);
 
         var nameToken = expect(TokenType.Ident);
@@ -261,7 +259,7 @@ public final class Analyser {
         // 下个 token 是等于号吗？如果是的话分析初始化
         if (nextIf(TokenType.Assign) != null) {
             // 分析初始化的表达式
-            analyseAssignExpression(nameToken.getValueString(), nameToken, instructions);
+            analyseAssignExpression(nameToken.getValueString(), nameToken);
         }
 
         // 分号
@@ -271,7 +269,7 @@ public final class Analyser {
     /**
      * const_decl_stmt -> 'const' IDENT ':' ty '=' expr ';'
      */
-    private void analyseConstDeclare(ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseConstDeclare() throws CompileError {
         expect(TokenType.CONST_KW);
 
         // 变量名
@@ -290,7 +288,7 @@ public final class Analyser {
         expect(TokenType.Assign);
 
         // 常表达式
-        var type1 = analyseExpression(1, instructions);
+        var type1 = analyseExpression(1);
         if(type1 != type.getTokenType()) throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
 
         // 分号
@@ -301,8 +299,7 @@ public final class Analyser {
     /**
      * function -> 'fn' IDENT '(' function_param_list? ')' '->' ty block_stmt
      */
-    private FunctionInstruction analyseFunction() throws CompileError {
-
+    private void analyseFunction() throws CompileError {
         expect(TokenType.FN_KW);
 
         // 函数名
@@ -326,14 +323,11 @@ public final class Analyser {
         symbolTable.addSymbolFunc(name, nameToken.getStartPos(), type);  // 添加到全局变量表
 
         symbolTable.currentFuncName = name;  // 改变当前函数名称，用于return的时候check type
-        analyseBlockStatement(false, instructions); // 无需再建表了
+        analyseBlockStatement(false); // 无需再建表了
 
         // 删除符号表
         symbolTable.removeMap();
         symbolTable.currentFuncName = null;
-
-        //  新建function instruction
-        FunctionInstruction instruction = new FunctionInstruction();
     }
 
     /**
@@ -370,7 +364,7 @@ public final class Analyser {
     /**
      * block_stmt -> '{' stmt* '}'
      */
-    private void analyseBlockStatement(boolean NeedNewMap, ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseBlockStatement(boolean NeedNewMap) throws CompileError {
         expect(TokenType.LBrace);
         // 创建符号表
         if(NeedNewMap) { // 从非函数入口进入需要new table
@@ -381,7 +375,7 @@ public final class Analyser {
             if(check(TokenType.RBrace)){
                 break;
             }else {
-                analyseStatement(instructions);
+                analyseStatement();
             }
         }
 
@@ -392,38 +386,38 @@ public final class Analyser {
     }
 
     /**
-        stmt ->
-            expr_stmt
-            | decl_stmt 'let' | 'const'
-            | if_stmt  'if'
-            | while_stmt  'while'
-            | return_stmt  'return'
-            | block_stmt  '{'
-            | empty_stmt  ';'
+     stmt ->
+     expr_stmt
+     | decl_stmt 'let' | 'const'
+     | if_stmt  'if'
+     | while_stmt  'while'
+     | return_stmt  'return'
+     | block_stmt  '{'
+     | empty_stmt  ';'
      */
-    private void analyseStatement(ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseStatement() throws CompileError {
         if(check(TokenType.IF_KW)) {
-            analyseIfStatement(instructions);
+            analyseIfStatement();
         } else if(check(TokenType.WHILE_KW)) {
-            analyseWhileStatement(instructions);
+            analyseWhileStatement();
         } else if(check(TokenType.RETURN_KW)) {
-            analyseReturnStatement(instructions);
+            analyseReturnStatement();
         } else if(check(TokenType.LET_KW) || check(TokenType.CONST_KW)) {
-            analyseDeclareStatement(instructions);
+            analyseDeclareStatement();
         } else if(check(TokenType.LBrace)) {
-            analyseBlockStatement(true, instructions);
+            analyseBlockStatement(true);
         } else if(check(TokenType.Semicolon)) { // empty_stmt
             expect(TokenType.Semicolon);
         } else {
-            analyseExpressionStatement(instructions);
+            analyseExpressionStatement();
         }
     }
 
     /**
      * expr_stmt -> expr ';'
      */
-    private void analyseExpressionStatement(ArrayList<Instruction> instructions) throws CompileError{
-        var type = analyseExpression(1, instructions); // 表达式如果有值，将会被丢弃
+    private void analyseExpressionStatement() throws CompileError{
+        var type = analyseExpression(1); // 表达式如果有值，将会被丢弃
         if(type != TokenType.VOID) {
             instructions.add(new Instruction(Operation.POP));
         }
@@ -433,26 +427,26 @@ public final class Analyser {
     /**
      * if_stmt -> 'if' expr block_stmt ('else' (block_stmt | if_stmt))?
      */
-    private void analyseIfStatement(ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseIfStatement() throws CompileError {
         expect(TokenType.IF_KW);
-        var type = analyseExpression(1, instructions);
+        var type = analyseExpression(1);
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
         instructions.add(new Instruction(Operation.BRTRUE, 1));  // 如果condition满足，跳到if block开始
         instructions.add(new Instruction(Operation.BR, 0)); // 如果condition不满足，跳到else block开始, 或者跳到外面
         int index1 = instructions.size() - 1;
 
-        analyseBlockStatement(true, instructions);
+        analyseBlockStatement(true);
 
         if(nextIf(TokenType.ELSE_KW) != null) { // 有else语句
             instructions.add(new Instruction(Operation.BR, 0)); // 进入else前跳到末尾
             int index2 = instructions.size() - 1;
             if(check(TokenType.IF_KW)) {
-                analyseIfStatement(instructions);
+                analyseIfStatement();
             }
             else {
                 var offset = instructions.size() - 1 - index1;
                 instructions.set(index1, new Instruction(Operation.BR, offset)); // 跳到else语句开始
-                analyseBlockStatement(true, instructions);
+                analyseBlockStatement(true);
             }
             var offset = instructions.size() - 1 - index2; // index2跳到末尾
             instructions.set(index2, new Instruction(Operation.BR, offset));
@@ -465,30 +459,30 @@ public final class Analyser {
     /**
      * while_stmt -> 'while' expr block_stmt
      */
-    private void analyseWhileStatement(ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseWhileStatement() throws CompileError {
         expect(TokenType.WHILE_KW);
         int index0 = instructions.size() - 1;
 
-        var type = analyseExpression(1, instructions); // condition
+        var type = analyseExpression(1); // condition
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
 
         instructions.add(new Instruction(Operation.BRTRUE, 1));
         instructions.add(new Instruction(Operation.BR, 0));  // 如果condition失败了，jump 到 while 外面
         int index1 = instructions.size() - 1;
 
-        analyseBlockStatement(true, instructions);
+        analyseBlockStatement(true);
         instructions.add(new Instruction(Operation.BR, index0 - (instructions.size() - 1) - 1)); // // 反着跳 无条件跳转到while开头
 
         int offset = instructions.size() - 1 - index1;
         instructions.set(index1, new Instruction(Operation.BR, offset));
     }
 
-    private void analyseReturnStatement(ArrayList<Instruction> instructions) throws CompileError {
+    private void analyseReturnStatement() throws CompileError {
         expect(TokenType.RETURN_KW);
         TokenType type = TokenType.VOID;
         instructions.add(new Instruction(Operation.ARGA, 0));  // ARGA(0)
         if(nextIf(TokenType.Semicolon) == null) { // 如果有返回值
-            type = analyseExpression(1, instructions);
+            type = analyseExpression(1);
         }
         // 如果不一致
         if(symbolTable.findSymbol(symbolTable.currentFuncName).type != type) {
@@ -510,23 +504,23 @@ public final class Analyser {
      * @return
      * @throws CompileError
      */
-    private TokenType computeAtom(ArrayList<Instruction> instructions) throws CompileError {
+    private TokenType computeAtom() throws CompileError {
         if(check(TokenType.Ident)) {
             var nameToken = expect(TokenType.Ident);
             String name = (String) nameToken.getValue();
             if(nextIf(TokenType.Assign) != null) {  // 赋值表达式
-                return analyseAssignExpression(name, nameToken, instructions);
+                return analyseAssignExpression(name, nameToken);
             } else if(check(TokenType.LParen)) {  // 函数调用表达式
-                return analyseCallExpression(name, nameToken, instructions);
+                return analyseCallExpression(name, nameToken);
             } else {  // 标识符表达式
-                return analyseIdentExpression(name, nameToken, instructions);
+                return analyseIdentExpression(name, nameToken);
             }
         } else if(check(TokenType.Minus)) {  // 取反表达式
-            return analyseNegateExpression(instructions);
+            return analyseNegateExpression();
         } else if(check(TokenType.LParen)) {  // 括号表达式
-            return analyseParenExpression(instructions);
+            return analyseParenExpression();
         } else { // 字面量表达式
-            return analyseLiteralExpression(instructions);
+            return analyseLiteralExpression();
         }
     }
 
@@ -535,7 +529,7 @@ public final class Analyser {
      * 括号表达式
      * // literal_expr -> UINT_LITERAL | DOUBLE_LITERAL | STRING_LITERAL | CHAR_LITERAL
      */
-    private TokenType analyseLiteralExpression(ArrayList<Instruction> instructions) throws CompileError {
+    private TokenType analyseLiteralExpression() throws CompileError {
         if(check(TokenType.Uint)) {
             var token = expect(TokenType.Uint);
             int value = (int)token.getValue();
@@ -562,11 +556,11 @@ public final class Analyser {
      * 括号表达式
      * group_expr -> '(' expr ')'
      */
-    private TokenType analyseParenExpression(ArrayList<Instruction> instructions) throws CompileError {
+    private TokenType analyseParenExpression() throws CompileError {
         expect(TokenType.Minus);
         // 计算结果需要被 0 减
         instructions.add(new Instruction(Operation.PUSH, 0));
-        var type = analyseExpression(1, instructions);
+        var type = analyseExpression(1);
         instructions.add(new Instruction(Operation.SUB));
         return type;
     }
@@ -575,9 +569,9 @@ public final class Analyser {
      * 取反表达式
      * negate_expr -> '-' expr
      */
-    private TokenType analyseNegateExpression(ArrayList<Instruction> instructions) throws CompileError {
+    private TokenType analyseNegateExpression() throws CompileError {
         expect(TokenType.Minus);
-        TokenType rightType =  computeAtom(instructions);
+        TokenType rightType =  computeAtom();
         instructions.add(new Instruction(Operation.NEG));
         return rightType;
     }
@@ -587,7 +581,7 @@ public final class Analyser {
      * ident_expr -> IDENT
      * 这儿IDent一定在 = 右边，需要初始化
      */
-    private TokenType analyseIdentExpression(String name, Token nameToken, ArrayList<Instruction> instructions) throws CompileError {
+    private TokenType analyseIdentExpression(String name, Token nameToken) throws CompileError {
         var symbol = symbolTable.findSymbol(name);
         if (symbol == null) {
             // 没有这个标识符
@@ -600,7 +594,7 @@ public final class Analyser {
             throw new AnalyzeError(ErrorCode.ExpectedVariableOrConstant, nameToken.getStartPos());
         }
 
-        addSymbolInstruction(symbol, instructions);
+        addSymbolInstruction(symbol);
         instructions.add(new Instruction(Operation.LOD));
         return symbol.type;
     }
@@ -610,7 +604,7 @@ public final class Analyser {
      * assign_expr -> IDENT '=' expr
      * @throws CompileError
      */
-    private TokenType analyseAssignExpression(String name, Token nameToken, ArrayList<Instruction> instructions) throws CompileError{
+    private TokenType analyseAssignExpression(String name, Token nameToken) throws CompileError{
         var symbol = symbolTable.findSymbol(name);
         if (symbol == null) {
             // 没有这个标识符
@@ -626,9 +620,9 @@ public final class Analyser {
         // 设置符号已初始化
         symbol.setInitialized(true);
         // 压入地址
-        addSymbolInstruction(symbol, instructions);
+        addSymbolInstruction(symbol);
 
-        var type = analyseExpression(1, instructions);
+        var type = analyseExpression(1);
         if(symbol.type != type) {
             throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
         }
@@ -641,7 +635,7 @@ public final class Analyser {
      * 函数调用表达式
      * call_expr -> IDENT '(' call_param_list? ')'
      */
-    private TokenType analyseCallExpression(String name, Token nameToken, ArrayList<Instruction> instructions) throws CompileError{
+    private TokenType analyseCallExpression(String name, Token nameToken) throws CompileError{
         if(symbolTable.standardFunction.get(name) == null) { // 不是标准库函数
             var symbol = symbolTable.findSymbol(name);
             if (symbol == null) {
@@ -659,7 +653,7 @@ public final class Analyser {
             if(check(TokenType.RParen)) { // 检查是否有参数列表
                 expect(TokenType.RParen);
             }else {
-                analyseCallParamList(instructions);
+                analyseCallParamList();
                 expect(TokenType.RParen);
             }
             instructions.add(new Instruction(Operation.CALL, symbol.index));
@@ -669,7 +663,7 @@ public final class Analyser {
             if(check(TokenType.RParen)) { // 检查是否有参数列表
                 expect(TokenType.RParen);
             }else {
-                analyseCallParamList(instructions);
+                analyseCallParamList();
                 expect(TokenType.RParen);
             }
             instructions.add(new Instruction(symbolTable.StandardOP.get(name)));
@@ -680,8 +674,8 @@ public final class Analyser {
     /**
      * expr -> computeAtom (operator_expr | as_expr)
      */
-    private TokenType analyseExpression(int minPrec, ArrayList<Instruction> instructions) throws CompileError {
-        var leftType = computeAtom(instructions);
+    private TokenType analyseExpression(int minPrec) throws CompileError {
+        var leftType = computeAtom();
         if(check(TokenType.AS_KW)) { // as_expr -> expr 'as' ty
             expect(TokenType.AS_KW);
             var type = expect(TokenType.INT, TokenType.VOID);
@@ -700,23 +694,23 @@ public final class Analyser {
 
                 TokenType rightType;
                 if(check(TokenType.Minus)) {
-                    rightType = analyseNegateExpression(instructions);
+                    rightType = analyseNegateExpression();
                 } else {
-                    rightType = analyseExpression(nextMinPrec, instructions);
+                    rightType = analyseExpression(nextMinPrec);
                 }
                 if(leftType != rightType) {
                     throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
                 }
-                addBinaryOPInstruction(op, instructions);
+                addBinaryOPInstruction(op);
             }
         }
         return TokenType.INT;
     }
 
-    private void analyseCallParamList(ArrayList<Instruction> instructions) throws CompileError {
-        analyseExpression(1, instructions);
+    private void analyseCallParamList() throws CompileError {
+        analyseExpression(1);
         while(nextIf(TokenType.Comma) != null) {
-            analyseExpression(1, instructions);
+            analyseExpression(1);
         }
     }
 }
