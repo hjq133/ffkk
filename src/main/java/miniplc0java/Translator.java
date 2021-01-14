@@ -47,7 +47,11 @@ public class Translator {
             output.printf("%08x\n", ins.instructions.size());  // body.count
             // body.item
             for(int i=0; i < ins.instructions.size(); i++) {
-                System.out.println(i + " : " + ins.instructions.get(i));
+                Instruction in = ins.instructions.get(i);
+                output.printf("%02x ", in.operation2num());
+                if(in.x != -9595) {
+                    output.printf("%016x\n", in.x);
+                }
             }
         }
     }

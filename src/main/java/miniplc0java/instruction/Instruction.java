@@ -6,11 +6,11 @@ import java.util.Objects;
 
 public class Instruction {
     public Operation opt;
-    Integer x;
+    public Integer x;
 
     public Instruction(Operation opt) {
         this.opt = opt;
-        this.x = 0;
+        this.x = -9595;
     }
 
     public Instruction(Operation opt, Integer x) {
@@ -18,9 +18,8 @@ public class Instruction {
         this.x = x;
     }
 
-    public static int operation2byte(Operation operation) {
-        switch (operation) {
-            // 没有操作数的
+    public int operation2num() {
+        switch (this.opt) {
             case PUSH:
                 return 0x01;
             case POP:
