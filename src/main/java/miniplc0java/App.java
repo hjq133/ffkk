@@ -12,6 +12,7 @@ import java.util.Scanner;
 
 import miniplc0java.analyser.Analyser;
 import miniplc0java.error.CompileError;
+import miniplc0java.instruction.FunctionInstruction;
 import miniplc0java.instruction.Instruction;
 import miniplc0java.tokenizer.StringIter;
 import miniplc0java.tokenizer.Token;
@@ -85,16 +86,25 @@ public class App {
             return;
         }
 
-        var translator = new Translator(analyzer.instructions, analyzer.symbolTable.indexMapGlobal, analyzer.symbolTable.indexMapFunc,output);
+//        System.out.println("global");
+//        for(int i=0; i < analyzer.instructions.size(); i++) {
+//            Instruction ins = analyzer.instructions.get(i);
+//            System.out.println(i + " : " + ins);
+//        }
+//        for(FunctionInstruction ins: analyzer.instructionsFunctions) {
+//            System.out.println();
+//            System.out.println(ins.funcName + ' ' + ins.funcIndex + ' ' + ins.paraSlot + "->" + ins.retSlot);
+//            for(int i=0; i < ins.instructions.size(); i++) {
+//                System.out.println(i + " : " + ins.instructions.get(i));
+//            }
+//        }
+        var translator = new Translator(analyzer.instructions, analyzer.instructionsFunctions, analyzer.symbolTable.indexMapGlobal, analyzer.symbolTable.indexMapFunc, output);
         translator.translate();
         for(int i=0; i < analyzer.instructions.size(); i++) {
             Instruction ins = analyzer.instructions.get(i);
             System.out.println(i + " : " + ins);
         }
         System.out.println("finish");
-//        for (Instruction instruction : instructions) {
-//            output.println(instruction.toString());
-//        }
     }
 
     private static ArgumentParser buildArgparse() {

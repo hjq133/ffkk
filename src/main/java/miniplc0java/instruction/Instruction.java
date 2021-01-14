@@ -1,5 +1,7 @@
 package miniplc0java.instruction;
 
+import miniplc0java.error.AnalyzeError;
+
 import java.util.Objects;
 
 public class Instruction {
@@ -16,6 +18,70 @@ public class Instruction {
         this.x = x;
     }
 
+    public static int operation2byte(Operation operation) {
+        switch (operation) {
+            // 没有操作数的
+            case PUSH:
+                return 0x01;
+            case POP:
+                return 0x02;
+            case LOCA:
+                return 0x0a;
+            case ARGA:
+                return 0x0b;
+            case GLOBA:
+                return 0x0c;
+            case LOD:
+                return 0x13; // load 64
+            case STO:
+                return 0x17; // sto 64
+            case STACKALLOC:
+                return 0x1a;
+            case ADD:
+                return 0x20; // add i
+            case SUB:
+                return 0x21; // sub i
+            case MUL:
+                return 0x22; // mul i
+            case DIV:
+                return 0x23; // div i
+            case NOT:
+                return 0x2e;
+            case CMP:
+                return 0x30; // cmp i
+            case NEG:
+                return 0x34;
+            case SETLT:
+                return 0x39;
+            case SETGT:
+                return 0x3a;
+            case BR:
+                return 0x41;// 无条件跳转
+            case BRFALSE:
+                return 0x42;
+            case BRTRUE:
+                return 0x43;
+            case CALL:
+                return 0x48;
+            case RET:
+                return 0x49;
+            case PRINGI:
+                return 0x54; // print i
+            case PRINTC:
+                return 0x55;
+            case PRINTS:
+                return 0x57;
+            case PRINTLN:
+                return 0x58;
+            case SCANI:
+                return 0x50;
+            case SCANC:
+                return 0x51;
+            default:
+                System.out.println("errrrrrooorrroooorrooorrr!!!!!!!!!!");
+                return 0xff; // error
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

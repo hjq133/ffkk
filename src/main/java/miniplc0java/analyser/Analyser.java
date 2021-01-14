@@ -297,7 +297,7 @@ public final class Analyser {
         expect(TokenType.Semicolon);
     }
 
-    private FunctionInstruction buildFunctionInstruction(int index1, int paraSlot, int retSlot, int funcIndex) {
+    private FunctionInstruction buildFunctionInstruction(int index1, int paraSlot, int retSlot, int funcIndex, String name) {
         ArrayList<Instruction> localInstruction = new ArrayList<>();
         int locaSlot = 0;
         // 从删除这些元素, 并把他们加到local里去
@@ -309,7 +309,7 @@ public final class Analyser {
             localInstruction.add(instruction);
             instructions.remove(i);
         }
-        FunctionInstruction funcInstruction = new FunctionInstruction(localInstruction, retSlot, paraSlot, locaSlot, funcIndex);
+        FunctionInstruction funcInstruction = new FunctionInstruction(localInstruction, retSlot, paraSlot, locaSlot, funcIndex, name);
         return funcInstruction;
     }
 
@@ -354,7 +354,7 @@ public final class Analyser {
         symbolTable.removeMap();
         symbolTable.currentFuncName = null;
 
-        return buildFunctionInstruction(index1, paraSlot, retSlot, symbolTable.indexMapFunc.get(name).index);
+        return buildFunctionInstruction(index1, paraSlot, retSlot, symbolTable.indexMapFunc.get(name).index, name);
     }
 
     /**
