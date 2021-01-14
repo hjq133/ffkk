@@ -120,8 +120,8 @@ public class SymbolTable {
      * 移除一个新的符号表
      */
     public void removeMap() {
-        this.indexTableLocal.remove(indexTableParam.get(indexTableParam.size()-1));
-        this.indexTableParam.remove(indexTableLocal.get(indexTableLocal.size()-1));
+        this.indexTableParam.remove(indexTableParam.get(indexTableParam.size()-1));
+        this.indexTableLocal.remove(indexTableLocal.get(indexTableLocal.size()-1));
     }
 
     /**

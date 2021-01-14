@@ -23,7 +23,44 @@ public class Translator {
         this.functionInstructions = functionInstructions;
         this.mapGolbal = mapGlobal;
         this.mapFunc = mapFunc;
+        this.output = output;
+    }
+
+    public void SystemTranslate() {
         this.output = System.out;
+        output.printf("magic: %08x\n", magic);  // magic u32
+        output.printf("version: %08x\n", version);  // version u32
+
+        output.printf("globals.count: %08x\n", mapGolbal.size());  // global.count
+        int i = 0;
+        for(String ss: mapGolbal.keySet()) {
+            SymbolEntry entry = mapGolbal.get(ss);
+            int isConst = entry.isConstant ? 1 : 0;
+            output.printf("global[%d].is_const, %02x\n", i, isConst);  // is_const
+            output.printf("global[%d].value.count, %08x\n", i, 8);  // value.count，全局变量都用0占位，都是8字节
+            output.printf("global[%d].value.item, %016x\n", i, 0);  //  value.item，值为0，占位？
+            i++;
+        }
+        i = 0;
+        for(FunctionInstruction ins: this.functionInstructions) {
+            output.printf("function[%d].name: %08x\n", i, ins.funcIndex); // function.name
+            output.printf("function[%d].ret_slots: %08x\n", i, ins.retSlot);  // function.ret_slots
+            output.printf("function[%d].param_slots: %08x\n", i, ins.paraSlot);  // function.param_slots
+            output.printf("function[%d].loc_slots: %08x\n", i, ins.localSlot);  // function.loc_slots
+            output.printf("function[%d].body.count: %08x\n", i, ins.instructions.size());  // body.count
+            // body.item
+            for(int j=0; j < ins.instructions.size(); j++) {
+                Instruction in = ins.instructions.get(j);
+                output.printf("%02x ", in.operation2num());
+                if(in.x != -9595) {
+                    output.printf("%016x\n", in.x);
+                }
+            }
+        }
+        System.out.println();
+        System.out.println();
+        System.out.println();
+        System.out.println();
     }
 
     public void translate() {
@@ -48,11 +85,12 @@ public class Translator {
             // body.item
             for(int i=0; i < ins.instructions.size(); i++) {
                 Instruction in = ins.instructions.get(i);
-                output.printf("%02x ", in.operation2num());
+                output.printf("%02x", in.operation2num());
                 if(in.x != -9595) {
                     output.printf("%016x", in.x);
                 }
             }
         }
+        SystemTranslate();
     }
 }

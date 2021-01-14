@@ -209,7 +209,8 @@ public final class Analyser {
         }
         while(true) {
             if(check(TokenType.FN_KW)) {
-                instructionsFunctions.add(analyseFunction());
+                FunctionInstruction functionInstruction = analyseFunction();
+                instructionsFunctions.add(functionInstruction);
             } else {
                 break;
             }
