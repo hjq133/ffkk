@@ -23,34 +23,34 @@ public class Translator {
         this.functionInstructions = functionInstructions;
         this.mapGolbal = mapGlobal;
         this.mapFunc = mapFunc;
-        this.output = output;
+        this.output = System.out;
     }
 
     public void translate() {
-        output.printf("%08x\n", magic);  // magic u32
-        output.printf("%08x\n", version);  // version u32
+        output.printf("%08x", magic);  // magic u32
+        output.printf("%08x", version);  // version u32
 
-        output.printf("%08x\n", mapGolbal.size());  // global.count
+        output.printf("%08x", mapGolbal.size());  // global.count
         for(String ss: mapGolbal.keySet()) {
             SymbolEntry entry = mapGolbal.get(ss);
             int isConst = entry.isConstant ? 1 : 0;
-            output.printf("%02x\n", isConst);  // is_const
-            output.printf("%08x\n", 8);  // value.count，全局变量都用0占位，都是8字节
-            output.printf("%016x\n", 0);  //  value.item，值为0，占位？
+            output.printf("%02x", isConst);  // is_const
+            output.printf("%08x", 8);  // value.count，全局变量都用0占位，都是8字节
+            output.printf("%016x", 0);  //  value.item，值为0，占位？
         }
 
         for(FunctionInstruction ins: this.functionInstructions) {
-            output.printf("%08x\n", ins.funcIndex); // function.name
-            output.printf("%08x\n", ins.retSlot);  // function.ret_slots
-            output.printf("%08x\n", ins.paraSlot);  // function.param_slots
-            output.printf("%08x\n", ins.localSlot);  // function.loc_slots
-            output.printf("%08x\n", ins.instructions.size());  // body.count
+            output.printf("%08x", ins.funcIndex); // function.name
+            output.printf("%08x", ins.retSlot);  // function.ret_slots
+            output.printf("%08x", ins.paraSlot);  // function.param_slots
+            output.printf("%08x", ins.localSlot);  // function.loc_slots
+            output.printf("%08x", ins.instructions.size());  // body.count
             // body.item
             for(int i=0; i < ins.instructions.size(); i++) {
                 Instruction in = ins.instructions.get(i);
                 output.printf("%02x ", in.operation2num());
                 if(in.x != -9595) {
-                    output.printf("%016x\n", in.x);
+                    output.printf("%016x", in.x);
                 }
             }
         }
