@@ -5,17 +5,8 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="a7ebd99a-57df-4789-b3f1-8079c45bf7f3" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/instruction/FunctionInstruction.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/App.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/App.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/Analyser.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolTable.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolTable.class" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/App.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/App.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/Translator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/Translator.java" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolEntry.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolTable.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolTable.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -304,7 +295,7 @@
       <workItem from="1608251241922" duration="33323000" />
       <workItem from="1608306772577" duration="63831000" />
       <workItem from="1608520584239" duration="256000" />
-      <workItem from="1610588194320" duration="9399000" />
+      <workItem from="1610588194320" duration="12099000" />
     </task>
     <servers />
   </component>
@@ -367,11 +358,6 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java</url>
-          <line>610</line>
-          <option name="timeStamp" value="80" />
-        </line-breakpoint>
         <line-breakpoint enabled="true" type="java-line">
           <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/App.java</url>
           <line>87</line>
