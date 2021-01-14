@@ -10,8 +10,6 @@ import miniplc0java.instruction.Operation;
 import miniplc0java.tokenizer.Token;
 import miniplc0java.tokenizer.TokenType;
 import miniplc0java.tokenizer.Tokenizer;
-import miniplc0java.util.Pos;
-import org.checkerframework.checker.units.qual.C;
 
 import java.util.*;
 
@@ -19,6 +17,7 @@ public final class Analyser {
 
     Tokenizer tokenizer;
     public ArrayList<Instruction> instructions;
+    //public ArrayList<FunctionInstruction> funcInstructions;
     public SymbolTable symbolTable;
 
     /**
@@ -48,15 +47,14 @@ public final class Analyser {
         this.OPPrec.put("!=", 1);
     }
 
-    public List<Instruction> analyse() throws CompileError {
+    public void analyse() throws CompileError {
         analyseProgram();
-        return instructions;
     }
     
-    public void addInstructionPrint(Instruction instruction) {
-        instructions.add(instruction);
-        System.out.println(instruction);
-    }
+//    public void addInstructionPrint(Instruction instruction) {
+//        instructions.add(instruction);
+//        System.out.println(instruction);
+//    }
     
     /**
      * 查看下一个 Token
@@ -682,7 +680,7 @@ public final class Analyser {
             expect(TokenType.AS_KW);
             var type = expect(TokenType.INT, TokenType.VOID);
             // TODO 附加的先不管
-        } else { // operator_expr -> expr binary_operator expr
+        } else { // operator_expr -> expr binary_operator expr 运算符表达式
             while(true) {
                 var token = peek();
                 String name = token.getValue().toString();

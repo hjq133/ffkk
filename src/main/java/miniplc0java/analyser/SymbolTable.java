@@ -15,7 +15,7 @@ public class SymbolTable {
      * 符号表 * 3， 全局表，全局函数表，参数/返回值表，局部变量表
      */
     public HashMap<String, SymbolEntry> indexMapGlobal = new HashMap<>();
-    HashMap<String, SymbolEntry> indexMapFunc = new HashMap<>();
+    public HashMap<String, SymbolEntry> indexMapFunc = new HashMap<>();
     ArrayList<HashMap<String, SymbolEntry>> indexTableParam = new ArrayList<>();
     ArrayList<HashMap<String, SymbolEntry>> indexTableLocal = new ArrayList<>();
     public String currentFuncName = null; // 当前所在函数的名字

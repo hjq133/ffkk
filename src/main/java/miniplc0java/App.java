@@ -72,7 +72,7 @@ public class App {
         var analyzer = new Analyser(tokenizer);
         List<Instruction> instructions;
         try {
-            instructions = analyzer.analyse();
+            analyzer.analyse();
         } catch (Exception e) {
             // 遇到错误不输出，直接退出
             for(int i=0; i < analyzer.instructions.size(); i++) {
@@ -85,7 +85,7 @@ public class App {
             return;
         }
 
-        var translator = new Translator(analyzer.instructions, analyzer.symbolTable.indexMapGlobal, output);
+        var translator = new Translator(analyzer.instructions, analyzer.symbolTable.indexMapGlobal, analyzer.symbolTable.indexMapFunc,output);
         translator.translate();
         for(int i=0; i < analyzer.instructions.size(); i++) {
             Instruction ins = analyzer.instructions.get(i);
