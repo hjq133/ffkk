@@ -5,6 +5,7 @@ import miniplc0java.error.CompileError;
 import miniplc0java.error.ErrorCode;
 import miniplc0java.error.ExpectedTokenError;
 import miniplc0java.error.TokenizeError;
+import miniplc0java.instruction.FunctionInstruction;
 import miniplc0java.instruction.Instruction;
 import miniplc0java.instruction.Operation;
 import miniplc0java.tokenizer.Token;
@@ -17,7 +18,7 @@ public final class Analyser {
 
     Tokenizer tokenizer;
     public ArrayList<Instruction> instructions;
-    //public ArrayList<FunctionInstruction> funcInstructions;
+    public ArrayList<FunctionInstruction> instructionsFunctions;
     public SymbolTable symbolTable;
 
     /**
@@ -33,6 +34,7 @@ public final class Analyser {
     public Analyser(Tokenizer tokenizer) {
         this.tokenizer = tokenizer;
         this.instructions = new ArrayList<>();
+        this.instructionsFunctions = new ArrayList<>();
         this.symbolTable = new SymbolTable();
 
         this.OPPrec.put("*", 3);
@@ -207,7 +209,7 @@ public final class Analyser {
         }
         while(true) {
             if(check(TokenType.FN_KW)) {
-                analyseFunction();
+                instructionsFunctions.add(analyseFunction());
             } else {
                 break;
             }
@@ -295,11 +297,29 @@ public final class Analyser {
         expect(TokenType.Semicolon);
     }
 
+    private FunctionInstruction buildFunctionInstruction(int index1, int paraSlot, int retSlot, int funcIndex) {
+        ArrayList<Instruction> localInstruction = new ArrayList<>();
+        int locaSlot = 0;
+        // 从删除这些元素, 并把他们加到local里去
+        for(int i=index1; i<instructions.size(); ) {
+            Instruction instruction = instructions.get(i);
+            if(instruction.opt == Operation.LOCA) {
+                locaSlot ++;
+            }
+            localInstruction.add(instruction);
+            instructions.remove(i);
+        }
+        FunctionInstruction funcInstruction = new FunctionInstruction(localInstruction, retSlot, paraSlot, locaSlot, funcIndex);
+        return funcInstruction;
+    }
 
     /**
      * function -> 'fn' IDENT '(' function_param_list? ')' '->' ty block_stmt
      */
-    private void analyseFunction() throws CompileError {
+    private FunctionInstruction analyseFunction() throws CompileError {
+        int paraSlot = 0;
+        int retSlot = 0;
+
         expect(TokenType.FN_KW);
 
         // 函数名
@@ -314,30 +334,40 @@ public final class Analyser {
         symbolTable.addNewMap();
 
         if(!check(TokenType.RParen)) { // 如果下一个不是右括号
-            analyseFunctionParamList();
+            paraSlot = analyseFunctionParamList();
         }
         expect(TokenType.RParen);
         expect(TokenType.Arrow);
 
         var type = expect(TokenType.INT, TokenType.VOID);  // 返回值类型
+        if(type.getTokenType() != TokenType.VOID) {
+            retSlot = 1; // return返回值的slot为1
+        }
         symbolTable.addSymbolFunc(name, nameToken.getStartPos(), type);  // 添加到全局变量表
 
         symbolTable.currentFuncName = name;  // 改变当前函数名称，用于return的时候check type
+
+        int index1 = instructions.size();
         analyseBlockStatement(false); // 无需再建表了
 
         // 删除符号表
         symbolTable.removeMap();
         symbolTable.currentFuncName = null;
+
+        return buildFunctionInstruction(index1, paraSlot, retSlot, symbolTable.indexMapFunc.get(name).index);
     }
 
     /**
      * function_param_list -> function_param (',' function_param)*
      */
-    private void analyseFunctionParamList() throws CompileError {
+    private int analyseFunctionParamList() throws CompileError {
+        int paraSlot = 1;
         analyseFunctionParam();
         while(nextIf(TokenType.Comma) != null) {
             analyseFunctionParam();
+            paraSlot ++;
         }
+        return paraSlot;
     }
 
     /**

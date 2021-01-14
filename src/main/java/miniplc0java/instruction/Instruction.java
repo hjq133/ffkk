@@ -3,7 +3,7 @@ package miniplc0java.instruction;
 import java.util.Objects;
 
 public class Instruction {
-    private Operation opt;
+    public Operation opt;
     Integer x;
 
     public Instruction(Operation opt) {
