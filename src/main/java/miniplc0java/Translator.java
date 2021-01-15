@@ -61,7 +61,7 @@ public class Translator {
         }
         i = 0;
         for(FunctionInstruction ins: this.functionInstructions) {
-            output.printf("function[%d].name: %08x\n", i, ins.funcIndex); // function.name
+            output.printf("function[%d].name: %08x\n", i, ins.funcIndex + this.mapGolbal.size()); // function.name
             output.printf("function[%d].ret_slots: %08x\n", i, ins.retSlot);  // function.ret_slots
             output.printf("function[%d].param_slots: %08x\n", i, ins.paraSlot);  // function.param_slots
             output.printf("function[%d].loc_slots: %08x\n", i, ins.localSlot);  // function.loc_slots
@@ -101,7 +101,7 @@ public class Translator {
         }
 
         for(FunctionInstruction ins: this.functionInstructions) {
-            output.printf("%08x", ins.funcIndex); // function.name
+            output.printf("%08x", ins.funcIndex + this.mapGolbal.size()); // function.name
             output.printf("%08x", ins.retSlot);  // function.ret_slots
             output.printf("%08x", ins.paraSlot);  // function.param_slots
             output.printf("%08x", ins.localSlot);  // function.loc_slots
