@@ -101,6 +101,13 @@ public class App {
                 System.out.println(i + " : " + ins.instructions.get(i));
             }
         }
+        File file = new File(outputFileName);
+        if (file.exists()) {
+            System.out.println("文件：" + file.getPath() + "  存在");
+        } else {
+            System.out.println("文件：" + file.getPath() + "  不存在!");
+        }
+
         System.exit(0);
         return;
     }
