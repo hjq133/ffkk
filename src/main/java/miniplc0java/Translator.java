@@ -42,7 +42,7 @@ public class Translator {
         output.printf("magic: %08x\n", magic);  // magic u32
         output.printf("version: %08x\n", version);  // version u32
 
-        output.printf("globals.count: %08x\n", mapGolbal.size());  // global.count
+        output.printf("globals.count: %08x\n", mapGolbal.size() + functionInstructions.size());  // global.count
         int i = 0;
         for(String ss: mapGolbal.keySet()) {
             SymbolEntry entry = mapGolbal.get(ss);
