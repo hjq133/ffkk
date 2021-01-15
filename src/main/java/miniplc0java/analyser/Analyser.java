@@ -50,8 +50,11 @@ public final class Analyser {
     }
 
     public void analyse() throws CompileError {
+        ArrayList<FunctionInstruction> tmp = new ArrayList<>();
         FunctionInstruction functionInstruction = analyseProgram();
-        this.instructionsFunctions.add(functionInstruction);
+        tmp.add(functionInstruction);
+        tmp.addAll(this.instructionsFunctions);
+        this.instructionsFunctions = tmp;
     }
 
 //    public void addInstructionPrint(Instruction instruction) {
