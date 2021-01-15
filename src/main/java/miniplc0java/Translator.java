@@ -64,7 +64,8 @@ public class Translator {
         for(FunctionInstruction ins: this.functionInstructions) {
             output.printf("global[%d].is_const： %02x\n", i, 1);
             output.printf("global[%d].value.count: %08x\n", i, strTo16(ins.funcName).length());
-            output.printf("global[%d].value.item: \n" + ins.funcName, i);
+            output.printf("global[%d].value.item: " + ins.funcName + "\n", i);
+            i++;
         }
 
         i = 0;

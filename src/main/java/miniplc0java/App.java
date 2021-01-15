@@ -95,7 +95,7 @@ public class App {
         }
         for(FunctionInstruction ins: analyzer.instructionsFunctions) {
             System.out.println();
-            System.out.println(ins.funcName + ' ' + ins.funcIndex + ' ' + ins.paraSlot + "->" + ins.retSlot);
+            System.out.println(ins.funcName + ' ' + '[' + (ins.funcIndex + analyzer.symbolTable.indexMapGlobal.size()) + ']' + ' ' + ins.localSlot + ' ' + ins.paraSlot + "->" + ins.retSlot);
             for(int i=0; i < ins.instructions.size(); i++) {
                 System.out.println(i + " : " + ins.instructions.get(i));
             }

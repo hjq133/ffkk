@@ -50,7 +50,8 @@ public final class Analyser {
     }
 
     public void analyse() throws CompileError {
-        analyseProgram();
+        FunctionInstruction functionInstruction = analyseProgram();
+        this.instructionsFunctions.add(functionInstruction);
     }
 
 //    public void addInstructionPrint(Instruction instruction) {
@@ -199,7 +200,7 @@ public final class Analyser {
     /**
      * program -> decl_stmt* function*
      */
-    private void analyseProgram() throws CompileError {
+    private FunctionInstruction analyseProgram() throws CompileError {
         while(true) {
             if(check(TokenType.LET_KW) || check(TokenType.CONST_KW)){
                 analyseDeclareStatement();
@@ -227,6 +228,8 @@ public final class Analyser {
         if(symbol.type != TokenType.VOID) {
             instructions.add(new Instruction(Operation.POP, 1));
         }
+
+        return buildFunctionInstruction(0, 0, 0, 0, "_start");
     }
 
     /**
