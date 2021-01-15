@@ -85,7 +85,7 @@ public class App {
             System.exit(0);
             return;
         }
-        var translator = new Translator(analyzer.instructions, analyzer.instructionsFunctions, analyzer.symbolTable.indexMapGlobal, analyzer.symbolTable.indexMapFunc, output);
+        var translator = new Translator(analyzer.instructions, analyzer.instructionsFunctions, analyzer.symbolTable.indexMapGlobal, output);
         translator.translate();
 
         System.out.println("\nglobal");

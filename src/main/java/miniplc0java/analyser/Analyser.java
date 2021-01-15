@@ -315,14 +315,16 @@ public final class Analyser {
         }
 
         // 检查是否有ret，没有则添加上
-        boolean retExist = false;
-        for(int i=0; i<localInstruction.size(); i++) {
-            if(localInstruction.get(i).opt == Operation.RET) {
-                retExist = true;
+        if(name != "_start") {
+            boolean retExist = false;
+            for(int i=0; i<localInstruction.size(); i++) {
+                if(localInstruction.get(i).opt == Operation.RET) {
+                    retExist = true;
+                }
             }
-        }
-        if(retExist == false) {
-            localInstruction.add(new Instruction(Operation.RET));
+            if(retExist == false) {
+                localInstruction.add(new Instruction(Operation.RET));
+            }
         }
 
         FunctionInstruction funcInstruction = new FunctionInstruction(localInstruction, retSlot, paraSlot, locaSlot, funcIndex, name);

@@ -14,16 +14,14 @@ public class Translator {
     ArrayList<Instruction> instructions;
     ArrayList<FunctionInstruction> functionInstructions;
     HashMap<String, SymbolEntry> mapGolbal;
-    HashMap<String, SymbolEntry> mapFunc;
     PrintStream output;
     static int magic = 0x72303b3e;
     static int version = 0x00000001;
 
-    public Translator(ArrayList<Instruction> ins, ArrayList<FunctionInstruction> functionInstructions, HashMap<String, SymbolEntry> mapGlobal, HashMap<String, SymbolEntry> mapFunc, PrintStream output) {
+    public Translator(ArrayList<Instruction> ins, ArrayList<FunctionInstruction> functionInstructions, HashMap<String, SymbolEntry> mapGlobal, PrintStream output) {
         this.instructions = ins;
         this.functionInstructions = functionInstructions;
         this.mapGolbal = mapGlobal;
-        this.mapFunc = mapFunc;
         this.output = output;
     }
 
@@ -63,13 +61,13 @@ public class Translator {
         // global function name
         for(FunctionInstruction ins: this.functionInstructions) {
             output.printf("global[%d].is_const： %02x\n", i, 1);
-            output.printf("global[%d].value.count: %08x\n", i, strTo16(ins.funcName).length());
+            output.printf("global[%d].value.count: %08x\n", i, ins.funcName.length());
             output.printf("global[%d].value.item: " + ins.funcName + "\n", i);
             i++;
         }
 
         i = 0;
-        output.printf("functions.count: %08x\n", this.mapFunc.size()); // function.count
+        output.printf("functions.count: %08x\n", this.functionInstructions.size()); // function.count
         for(FunctionInstruction ins: this.functionInstructions) {
             output.printf("function[%d].name: %08x\n", i, ins.funcIndex + this.mapGolbal.size()); // function.name
             output.printf("function[%d].ret_slots: %08x\n", i, ins.retSlot);  // function.ret_slots
@@ -84,6 +82,7 @@ public class Translator {
                     output.printf("%016x\n", in.x);
                 }
             }
+            i++;
         }
         System.out.println();
         System.out.println();
@@ -95,7 +94,7 @@ public class Translator {
         output.printf("%08x", magic);  // magic u32
         output.printf("%08x", version);  // version u32
 
-        output.printf("%08x", mapGolbal.size());  // global.count
+        output.printf("%08x", mapGolbal.size() + functionInstructions.size());  // global.count
         for(String ss: mapGolbal.keySet()) {
             SymbolEntry entry = mapGolbal.get(ss);
             int isConst = entry.isConstant ? 1 : 0;
@@ -113,12 +112,12 @@ public class Translator {
         // global function name
         for(FunctionInstruction ins: this.functionInstructions) {
             output.printf("%02x", 1);
-            output.printf("%08x", strTo16(ins.funcName).length());
+            output.printf("%08x", ins.funcName.length());
             output.print(ins.funcName);
         }
 
         // functions
-        output.printf("%08x", this.mapFunc.size()); // function.count
+        output.printf("%08x", this.functionInstructions.size()); // function.count
         for(FunctionInstruction ins: this.functionInstructions) {
             output.printf("%08x", ins.funcIndex + this.mapGolbal.size()); // function.name
             output.printf("%08x", ins.retSlot);  // function.ret_slots

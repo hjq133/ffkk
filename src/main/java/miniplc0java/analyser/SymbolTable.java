@@ -44,7 +44,7 @@ public class SymbolTable {
         this.standardFunction.put("putchar", TokenType.VOID);
         this.standardFunction.put("putstr", TokenType.VOID);
         this.standardFunction.put("putln", TokenType.VOID);
-//
+
 //        for (HashMap.Entry<String, TokenType> entry : standardFunction.entrySet()) { // TODO 是直接提前加进去嘛
 //            int index = indexMapFunc.size();
 //            this.indexMapFunc.put(entry.getKey(), new SymbolEntry(false, false, true, entry.getValue(), 1, index));
