@@ -59,7 +59,16 @@ public class Translator {
             }
             i++;
         }
+
+        // global function name
+        for(FunctionInstruction ins: this.functionInstructions) {
+            output.printf("global[%d].is_const： %02x\n", i, 1);
+            output.printf("global[%d].value.count: %08x\n", i, strTo16(ins.funcName).length());
+            output.printf("global[%d].value.item: \n" + ins.funcName, i);
+        }
+
         i = 0;
+        output.printf("functions.count: %08x\n", this.mapFunc.size()); // function.count
         for(FunctionInstruction ins: this.functionInstructions) {
             output.printf("function[%d].name: %08x\n", i, ins.funcIndex + this.mapGolbal.size()); // function.name
             output.printf("function[%d].ret_slots: %08x\n", i, ins.retSlot);  // function.ret_slots
@@ -100,6 +109,15 @@ public class Translator {
             }
         }
 
+        // global function name
+        for(FunctionInstruction ins: this.functionInstructions) {
+            output.printf("%02x", 1);
+            output.printf("%08x", strTo16(ins.funcName).length());
+            output.print(ins.funcName);
+        }
+
+        // functions
+        output.printf("%08x", this.mapFunc.size()); // function.count
         for(FunctionInstruction ins: this.functionInstructions) {
             output.printf("%08x", ins.funcIndex + this.mapGolbal.size()); // function.name
             output.printf("%08x", ins.retSlot);  // function.ret_slots
