@@ -608,11 +608,10 @@ public final class Analyser {
      * group_expr -> '(' expr ')'
      */
     private TokenType analyseParenExpression() throws CompileError {
-        expect(TokenType.Minus);
-        // 计算结果需要被 0 减
-        instructions.add(new Instruction(Operation.PUSH, 0));
+
+        expect(TokenType.LParen);
         var type = analyseExpression(1);
-        instructions.add(new Instruction(Operation.SUB));
+        expect(TokenType.RParen);
         return type;
     }
 

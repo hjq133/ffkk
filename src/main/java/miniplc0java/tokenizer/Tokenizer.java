@@ -175,7 +175,7 @@ public class Tokenizer {
         String val = "";
         char peek = it.peekChar();
         Pos begin = it.currentPos();
-        while (Character.isDigit(peek) || Character.isAlphabetic(peek)) {
+        while (Character.isDigit(peek) || Character.isAlphabetic(peek) || peek == '_') {
             it.nextChar();
             val = val + peek;
             peek = it.peekChar(); // 查看下一个字符
