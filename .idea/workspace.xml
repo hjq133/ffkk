@@ -7,8 +7,9 @@
     <list default="true" id="a7ebd99a-57df-4789-b3f1-8079c45bf7f3" name="Default Changelist" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/Translator.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/Translator.class" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" beforeDir="false" afterPath="$PROJECT_DIR$/out/production/classes/miniplc0java/analyser/SymbolEntry.class" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/Translator.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/Translator.java" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolEntry.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/SymbolEntry.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" beforeDir="false" afterPath="$PROJECT_DIR$/src/main/java/miniplc0java/analyser/Analyser.java" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -357,17 +358,6 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
-  </component>
-  <component name="XDebuggerManager">
-    <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="java-line">
-          <url>file://$PROJECT_DIR$/src/main/java/miniplc0java/Translator.java</url>
-          <line>91</line>
-          <option name="timeStamp" value="96" />
-        </line-breakpoint>
-      </breakpoints>
-    </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
     <entry file="file://$PROJECT_DIR$/1.json" />

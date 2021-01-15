@@ -69,7 +69,7 @@ public class Translator {
             // body.item
             for(int j=0; j < ins.instructions.size(); j++) {
                 Instruction in = ins.instructions.get(j);
-                output.printf("%02x ", in.operation2num());
+                output.printf("%02x\n", in.operation2num());
                 if(in.x != -9595) {
                     output.printf("%016x\n", in.x);
                 }
