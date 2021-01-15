@@ -4,6 +4,7 @@ import miniplc0java.analyser.SymbolEntry;
 import miniplc0java.analyser.SymbolTable;
 import miniplc0java.instruction.FunctionInstruction;
 import miniplc0java.instruction.Instruction;
+import miniplc0java.tokenizer.TokenType;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
@@ -26,6 +27,16 @@ public class Translator {
         this.output = output;
     }
 
+    public static String strTo16(String s) {
+        String str = "";
+        for (int i = 0; i < s.length(); i++) {
+            int ch = (int) s.charAt(i);
+            String s4 = Integer.toHexString(ch);
+            str = str + s4;
+        }
+        return str;
+    }
+
     public void SystemTranslate() {
         this.output = System.out;
         output.printf("magic: %08x\n", magic);  // magic u32
@@ -36,9 +47,16 @@ public class Translator {
         for(String ss: mapGolbal.keySet()) {
             SymbolEntry entry = mapGolbal.get(ss);
             int isConst = entry.isConstant ? 1 : 0;
-            output.printf("global[%d].is_const, %02x\n", i, isConst);  // is_const
-            output.printf("global[%d].value.count, %08x\n", i, 8);  // value.count，全局变量都用0占位，都是8字节
-            output.printf("global[%d].value.item, %016x\n", i, 0);  //  value.item，值为0，占位？
+            output.printf("global[%d].is_const： %02x\n", i, isConst);  // is_const
+            if(entry.type == TokenType.String) {
+                String to16 = strTo16(ss);
+                output.printf("global[%d].value.count: %08x\n", i, to16.length()); // value.count
+                output.printf("global[%d].value.item: ", i);
+                output.println(to16); // value.item
+            }else {
+                output.printf("global[%d].value.count: %08x\n", i, 8); // value.count
+                output.printf("global[%d].value.item: %016x\n", i, 8);
+            }
             i++;
         }
         i = 0;
@@ -72,8 +90,14 @@ public class Translator {
             SymbolEntry entry = mapGolbal.get(ss);
             int isConst = entry.isConstant ? 1 : 0;
             output.printf("%02x", isConst);  // is_const
-            output.printf("%08x", 8);  // value.count，全局变量都用0占位，都是8字节
-            output.printf("%016x", 0);  //  value.item，值为0，占位？
+            if(entry.type == TokenType.String) {
+                String to16 = strTo16(ss);
+                output.printf("%08x", to16.length());
+                output.print(to16);
+            }else {
+                output.printf("%08x", 8);  // value.count，全局变量都用0占位，都是8字节
+                output.printf("%016x", 0);  //  value.item，值为0，占位？
+            }
         }
 
         for(FunctionInstruction ins: this.functionInstructions) {

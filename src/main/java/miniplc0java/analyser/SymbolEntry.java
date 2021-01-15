@@ -7,7 +7,7 @@ public class SymbolEntry {
     public boolean isConstant;
     boolean isInitialized;
     boolean isFunction;
-    TokenType type;
+    public TokenType type;
     int level; // 1 代表全局，2 代表局部变量， 3 代表函数参数
     int index;
 
