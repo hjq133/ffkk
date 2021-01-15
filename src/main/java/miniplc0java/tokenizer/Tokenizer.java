@@ -103,6 +103,9 @@ public class Tokenizer {
         peek = it.peekChar();
         while(peek != '\"') {
             it.nextChar();
+            if(peek == '\n') {
+                throw new TokenizeError(ErrorCode.InvalidInput, begin);
+            }
             if(peek == '\\') {  // 转义字符
                 peek = it.peekChar();
                 ch = switch (peek) {
