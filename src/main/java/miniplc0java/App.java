@@ -27,14 +27,15 @@ import net.sourceforge.argparse4j.inf.ArgumentParserException;
 import net.sourceforge.argparse4j.inf.Namespace;
 
 public class App {
-    public static int main(String[] args) throws CompileError {
+    public static void main(String[] args) throws CompileError {
         var argparse = buildArgparse();
         Namespace result;
         try {
             result = argparse.parseArgs(args);
         } catch (ArgumentParserException e1) {
             argparse.handleError(e1);
-            return -1;
+            System.exit(-1);
+            return;
         }
 
         var inputFileName = result.getString("input");
@@ -50,7 +51,7 @@ public class App {
             System.err.println("Cannot find input file.");
             e.printStackTrace();
             System.exit(2);
-            return -1;
+            return;
         }
 
         PrintStream output;
@@ -61,7 +62,7 @@ public class App {
             System.err.println("Cannot open output file.");
             e.printStackTrace();
             System.exit(2);
-            return -1;
+            return;
         }
 
         Scanner scanner;
@@ -82,8 +83,8 @@ public class App {
             }
             //System.out.println(analyzer.instructions);
             System.err.println(e);
-            System.exit(0);
-            return -1;
+            System.exit(3);
+            return;
         }
         var translator = new Translator(analyzer.instructions, analyzer.instructionsFunctions, analyzer.symbolTable.indexMapGlobal, output);
         translator.translate();
@@ -100,7 +101,8 @@ public class App {
                 System.out.println(i + " : " + ins.instructions.get(i));
             }
         }
-        return 0;
+        System.exit(0);
+        return;
     }
 
     private static ArgumentParser buildArgparse() {
