@@ -70,6 +70,7 @@ public class SymbolTable {
         SymbolEntry entry = new SymbolEntry(isConstant, isInitialized, false, typeToken.getTokenType(), 0, 0);
         if (currentFuncName == null) { // 加入全局表
             entry.level = 1;
+            entry.isInitialized = true; // 全局符号自动初始化
             entry.index = indexMapGlobal.size();
             addSymbol(name, entry, curPos, indexMapGlobal);
         }
