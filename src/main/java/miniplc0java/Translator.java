@@ -86,60 +86,60 @@ public class Translator {
         return str;
     }
 
-    public void SystemTranslate() {
-        PrintStream output = System.out;
-        output.printf("magic: %08x\n", magic);  // magic u32
-        output.printf("version: %08x\n", version);  // version u32
-
-        output.printf("globals.count: %08x\n", mapGolbal.size() + functionInstructions.size());  // global.count
-        int i = 0;
-        for(String ss: mapGolbal.keySet()) {
-            SymbolEntry entry = mapGolbal.get(ss);
-            int isConst = entry.isConstant ? 1 : 0;
-            output.printf("global[%d].is_const： %02x\n", i, isConst);  // is_const
-            if(entry.type == TokenType.String) {
-                String to16 = strTo16(ss);
-                output.printf("global[%d].value.count: %08x\n", i, to16.length()); // value.count
-                output.printf("global[%d].value.item: ", i);
-                output.println(to16); // value.item
-            }else {
-                output.printf("global[%d].value.count: %08x\n", i, 8); // value.count
-                output.printf("global[%d].value.item: %016x\n", i, 8);
-            }
-            i++;
-        }
-
-        // global function name
-        for(FunctionInstruction ins: this.functionInstructions) {
-            output.printf("global[%d].is_const： %02x\n", i, 1);
-            output.printf("global[%d].value.count: %08x\n", i, ins.funcName.length());
-            output.printf("global[%d].value.item: " + ins.funcName + "\n", i);
-            i++;
-        }
-
-        i = 0;
-        output.printf("functions.count: %08x\n", this.functionInstructions.size()); // function.count
-        for(FunctionInstruction ins: this.functionInstructions) {
-            output.printf("function[%d].name: %08x\n", i, ins.funcIndex + this.mapGolbal.size()); // function.name
-            output.printf("function[%d].ret_slots: %08x\n", i, ins.retSlot);  // function.ret_slots
-            output.printf("function[%d].param_slots: %08x\n", i, ins.paraSlot);  // function.param_slots
-            output.printf("function[%d].loc_slots: %08x\n", i, ins.localSlot);  // function.loc_slots
-            output.printf("function[%d].body.count: %08x\n", i, ins.instructions.size());  // body.count
-            // body.item
-            for(int j=0; j < ins.instructions.size(); j++) {
-                Instruction in = ins.instructions.get(j);
-                output.printf("%02x\n", in.operation2num());
-                if(in.x != -9595) {
-                    output.printf("%016x\n", in.x);
-                }
-            }
-            i++;
-        }
-        System.out.println();
-        System.out.println();
-        System.out.println();
-        System.out.println();
-    }
+//    public void SystemTranslate() {
+//        PrintStream output = System.out;
+//        output.printf("magic: %08x\n", magic);  // magic u32
+//        output.printf("version: %08x\n", version);  // version u32
+//
+//        output.printf("globals.count: %08x\n", mapGolbal.size() + functionInstructions.size());  // global.count
+//        int i = 0;
+//        for(String ss: mapGolbal.keySet()) {
+//            SymbolEntry entry = mapGolbal.get(ss);
+//            int isConst = entry.isConstant ? 1 : 0;
+//            output.printf("global[%d].is_const： %02x\n", i, isConst);  // is_const
+//            if(entry.type == TokenType.String) {
+//                String to16 = strTo16(ss);
+//                output.printf("global[%d].value.count: %08x\n", i, to16.length()); // value.count
+//                output.printf("global[%d].value.item: ", i);
+//                output.println(to16); // value.item
+//            }else {
+//                output.printf("global[%d].value.count: %08x\n", i, 8); // value.count
+//                output.printf("global[%d].value.item: %016x\n", i, 8);
+//            }
+//            i++;
+//        }
+//
+//        // global function name
+//        for(FunctionInstruction ins: this.functionInstructions) {
+//            output.printf("global[%d].is_const： %02x\n", i, 1);
+//            output.printf("global[%d].value.count: %08x\n", i, ins.funcName.length());
+//            output.printf("global[%d].value.item: " + ins.funcName + "\n", i);
+//            i++;
+//        }
+//
+//        i = 0;
+//        output.printf("functions.count: %08x\n", this.functionInstructions.size()); // function.count
+//        for(FunctionInstruction ins: this.functionInstructions) {
+//            output.printf("function[%d].name: %08x\n", i, ins.funcIndex + this.mapGolbal.size()); // function.name
+//            output.printf("function[%d].ret_slots: %08x\n", i, ins.retSlot);  // function.ret_slots
+//            output.printf("function[%d].param_slots: %08x\n", i, ins.paraSlot);  // function.param_slots
+//            output.printf("function[%d].loc_slots: %08x\n", i, ins.localSlot);  // function.loc_slots
+//            output.printf("function[%d].body.count: %08x\n", i, ins.instructions.size());  // body.count
+//            // body.item
+//            for(int j=0; j < ins.instructions.size(); j++) {
+//                Instruction in = ins.instructions.get(j);
+//                output.printf("%02x\n", in.operation2num());
+//                if(in.x != -9595) {
+//                    output.printf("%016x\n", in.x);
+//                }
+//            }
+//            i++;
+//        }
+//        System.out.println();
+//        System.out.println();
+//        System.out.println();
+//        System.out.println();
+//    }
 
     public void translate() throws IOException{
         output.writeInt(magic); // magic u32
@@ -177,12 +177,12 @@ public class Translator {
             // body.item
             for(int i=0; i < ins.instructions.size(); i++) {
                 Instruction in = ins.instructions.get(i);
-                output.writeByte(in.operation2num());
-                if(in.x != -9595) {
-                    output.writeInt(in.x);
-                }
+                output.write(in.toByte());
+//                if(in.x != -9595) {
+//                    output.writeInt(in.x);
+//                }
             }
         }
-        SystemTranslate();
+        //SystemTranslate();
     }
 }
