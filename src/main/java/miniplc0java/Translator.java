@@ -5,7 +5,7 @@ import miniplc0java.analyser.SymbolTable;
 import miniplc0java.instruction.FunctionInstruction;
 import miniplc0java.instruction.Instruction;
 import miniplc0java.tokenizer.TokenType;
-
+import java.io.DataOutputStream;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +15,7 @@ public class Translator {
     ArrayList<Instruction> instructions;
     ArrayList<FunctionInstruction> functionInstructions;
     HashMap<String, SymbolEntry> mapGolbal;
-    PrintStream output;
+    DataOutputStream output;
     static int magic = 0x72303b3e;
     static int version = 0x00000001;
 
@@ -73,7 +73,7 @@ public class Translator {
         this.instructions = ins;
         this.functionInstructions = functionInstructions;
         this.mapGolbal = mapGlobal;
-        this.output = output;
+        this.output = new DataOutputStream(output);
     }
 
     public static String strTo16(String s) {
@@ -87,7 +87,7 @@ public class Translator {
     }
 
     public void SystemTranslate() {
-        this.output = System.out;
+        PrintStream output = System.out;
         output.printf("magic: %08x\n", magic);  // magic u32
         output.printf("version: %08x\n", version);  // version u32
 
@@ -142,45 +142,44 @@ public class Translator {
     }
 
     public void translate() throws IOException{
-        output.write(intToByteArray32(magic));  // magic u32
-        output.write(intToByteArray32(version)); // version u32
+        output.writeInt(magic); // magic u32
+        output.writeInt(version); // version u32
 
-        output.write(intToByteArray32(mapGolbal.size() + functionInstructions.size()));  // global.count u32
+        output.writeInt(mapGolbal.size() + functionInstructions.size());  // global.count u32
         for(String ss: mapGolbal.keySet()) {
             SymbolEntry entry = mapGolbal.get(ss);
             int isConst = entry.isConstant ? 1 : 0;
-            output.write(intToByteArray8(isConst));  // is_const u8
+            output.writeByte(isConst);  // is_const u8
             if(entry.type == TokenType.String) {
-                String to16 = strTo16(ss);
-                output.write(intToByteArray32(to16.length()));  // count u32
-                output.write(hex2Bytes(to16));  // hex16 2 byte
+                output.writeInt(ss.length());  // count u32
+                output.writeBytes(ss);  // hex16 2 byte
             }else {
-                output.write(intToByteArray32(8)); // value.count，全局变量都用0占位，都是8字节
-                output.write(intToByteArray64(0)); //  value.item，u64 值为0，占位？
+                output.writeInt(8); // value.count，全局变量都用0占位，都是8字节
+                output.writeLong(0); //  value.item，u64 值为0，占位？
             }
         }
 
         // global function
         for(FunctionInstruction ins: this.functionInstructions) {
-            output.write(intToByteArray8(1));  // is_const u8
-            output.write(intToByteArray32(ins.funcName.length())); // count u32
-            output.write(hex2Bytes(strTo16(ins.funcName)));
+            output.writeByte(1);  // is_const u8
+            output.writeInt(ins.funcName.length()); // count u32
+            output.writeBytes(ins.funcName);
         }
 
         // functions
-        output.write(intToByteArray32(this.functionInstructions.size())); // function.count u32
+        output.writeInt(this.functionInstructions.size()); // function.count u32
         for(FunctionInstruction ins: this.functionInstructions) {
-            output.write(intToByteArray32(ins.funcIndex + this.mapGolbal.size())); // function.name u32
-            output.write(intToByteArray32(ins.retSlot));  // function.ret_slots u32
-            output.write(intToByteArray32(ins.paraSlot));  // function.param_slots u32
-            output.write(intToByteArray32(ins.localSlot));  // function.loc_slots u32
-            output.write(intToByteArray32(ins.instructions.size()));  // body.count u32
+            output.writeInt(ins.funcIndex + this.mapGolbal.size()); // function.name u32
+            output.writeInt(ins.retSlot);  // function.ret_slots u32
+            output.writeInt(ins.paraSlot);  // function.param_slots u32
+            output.writeInt(ins.localSlot);  // function.loc_slots u32
+            output.writeInt(ins.instructions.size());  // body.count u32
             // body.item
             for(int i=0; i < ins.instructions.size(); i++) {
                 Instruction in = ins.instructions.get(i);
-                output.write(intToByteArray8(in.operation2num()));
+                output.writeByte(in.operation2num());
                 if(in.x != -9595) {
-                    output.write(intToByteArray32(in.x));
+                    output.writeLong(in.x);
                 }
             }
         }
