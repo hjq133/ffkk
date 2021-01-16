@@ -20,8 +20,8 @@ public final class Analyser {
     public ArrayList<Instruction> instructions;
     public ArrayList<FunctionInstruction> instructionsFunctions;
     public SymbolTable symbolTable;
-    ArrayList<Integer> breakList = new ArrayList<>();
-    ArrayList<Integer> continueList = new ArrayList<>();
+    ArrayList<ArrayList<Integer>> breakList = new ArrayList<>();
+    ArrayList<ArrayList<Integer>> continueList = new ArrayList<>();
 
     /**
      * 当前偷看的 token
@@ -495,6 +495,17 @@ public final class Analyser {
         }
     }
 
+    private void checkBreakList() throws CompileError{
+        if(breakList.size() != 0) {
+            ArrayList<Integer> tmp = breakList.get(breakList.size()-1);
+            for(Integer id : tmp) {
+                int offset = instructions.size() - 1 - id;
+                instructions.set(id, new Instruction(Operation.BR, offset));
+            }
+            breakList.remove(breakList.size()-1);
+        }
+    }
+
     /**
      * break_stmt -> 'break' ';'
      */
@@ -503,9 +514,20 @@ public final class Analyser {
         expect(TokenType.Semicolon);
         if(breakList.size() != 0) {
             instructions.add(new Instruction(Operation.BR, 0));
-            breakList.set(breakList.size()-1, instructions.size()-1);
+            breakList.get(breakList.size()-1).add(instructions.size()-1);
         }else {
             throw new AnalyzeError(ErrorCode.BreakPosError, symbolTable.currentFuncName);
+        }
+    }
+
+    private void checkContinueList() throws CompileError{
+        if(continueList.size() != 0) {
+            ArrayList<Integer> tmp = continueList.get(continueList.size()-1);
+            for(Integer id : tmp) {
+                int offset = instructions.size() - 1 - id;
+                instructions.set(id, new Instruction(Operation.BR, offset));
+            }
+            continueList.remove(continueList.size()-1);
         }
     }
 
@@ -517,7 +539,7 @@ public final class Analyser {
         expect(TokenType.Semicolon);
         if(continueList.size() != 0) {
             instructions.add(new Instruction(Operation.BR, 0));
-            continueList.set(continueList.size()-1, instructions.size()-1);
+            continueList.get(continueList.size()-1).add(instructions.size()-1);
         }else {
             throw new AnalyzeError(ErrorCode.ContinuePosError, symbolTable.currentFuncName);
         }
@@ -570,8 +592,8 @@ public final class Analyser {
      * while_stmt -> 'while' expr block_stmt
      */
     private void analyseWhileStatement() throws CompileError {
-        breakList.add(-1);
-        continueList.add(-1);
+        breakList.add(new ArrayList<>());
+        continueList.add(new ArrayList<>());
         expect(TokenType.WHILE_KW);
         int index0 = instructions.size() - 1;
 
@@ -585,14 +607,7 @@ public final class Analyser {
         analyseBlockStatement(true);
 
         // check continue list
-        if(continueList.size() != 0) {
-            int index4 = continueList.get(continueList.size()-1);
-            if(index4 != -1) {
-                int offset = instructions.size() - 1 - index4;
-                instructions.set(index4, new Instruction(Operation.BR, offset));
-            }
-            continueList.remove(continueList.size()-1);
-        }
+        checkContinueList();
 
         instructions.add(new Instruction(Operation.BR, index0 - (instructions.size() - 1) - 1)); // // 反着跳 无条件跳转到while开头
 
@@ -600,14 +615,7 @@ public final class Analyser {
         instructions.set(index1, new Instruction(Operation.BR, offset));
 
         // check break list
-        if(breakList.size() != 0) {
-            int index3 = breakList.get(breakList.size()-1);
-            if(index3 != -1) {
-                offset = instructions.size() - 1 - index3;
-                instructions.set(index3, new Instruction(Operation.BR, offset));
-            }
-            breakList.remove(breakList.size()-1);
-        }
+        checkBreakList();
     }
 
     private void analyseReturnStatement() throws CompileError {
