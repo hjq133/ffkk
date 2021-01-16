@@ -514,15 +514,15 @@ public final class Analyser {
         if(nextIf(TokenType.ELSE_KW) != null) { // 有else语句
             instructions.add(new Instruction(Operation.BR, 0)); // 进入else前跳到末尾
             int index2 = instructions.size() - 1;
+            var offset = instructions.size() - 1 - index1;
+            instructions.set(index1, new Instruction(Operation.BR, offset)); // 跳到else语句开始
             if(check(TokenType.IF_KW)) {
                 analyseIfStatement();
             }
             else {
-                var offset = instructions.size() - 1 - index1;
-                instructions.set(index1, new Instruction(Operation.BR, offset)); // 跳到else语句开始
                 analyseBlockStatement(true);
             }
-            var offset = instructions.size() - 1 - index2; // index2跳到末尾
+            offset = instructions.size() - 1 - index2; // index2跳到末尾
             instructions.set(index2, new Instruction(Operation.BR, offset));
         } else { // 无else语句
             var offset = instructions.size() - 1 - index1; // 直接跳到外面
