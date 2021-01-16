@@ -49,6 +49,7 @@ public class Instruction {
             //case ftoi:
             //case itof:
             case NEG:
+            case NOT:
             //case negf:
                 byte[] bytes=new byte[1];
                 bytes[0]=this.opt.toByte();

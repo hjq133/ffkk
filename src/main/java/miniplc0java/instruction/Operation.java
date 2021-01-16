@@ -71,6 +71,8 @@ public enum Operation {
                 return (byte)0x22;
             case DIV:
                 return (byte)0x23;
+            case NOT:
+                return (byte)0x2e;
             case RET:
                 return (byte)0x49;
             case CMP:
