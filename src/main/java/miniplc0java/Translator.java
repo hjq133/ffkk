@@ -62,8 +62,9 @@ public class Translator {
         return result;
     }
 
-    public static byte intToByteArray8(int i) {
-        byte re = (byte)(i & 0xFF);
+    public static byte[] intToByteArray8(int i) {
+        byte[] re = new byte[1];
+        re[0] = (byte)(i & 0xFF);
         return re;
     }
 
