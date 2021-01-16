@@ -30,8 +30,10 @@ public class Instruction {
             case PRINTC:
             case PRINTS:
             case PRINTLN:
+            case PRINTF:
             case SCANI:
             case SCANC:
+            case SCANF:
             //case nop:
             case POP:
             case STO:
@@ -199,9 +201,11 @@ public class Instruction {
             case PRINTI:
             case PRINTC:
             case PRINTS:
+            case PRINTF:
             case PRINTLN:
             case SCANI:
             case SCANC:
+            case SCANF:
             case SETLT:
             case SETGT:
             case CMP:

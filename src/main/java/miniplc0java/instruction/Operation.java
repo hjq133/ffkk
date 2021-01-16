@@ -23,10 +23,12 @@ public enum Operation {
     PRINTI,
     PRINTC,
     PRINTS,
+    PRINTF,
     PRINTLN,
 
     SCANI,
     SCANC,
+    SCANF,
 
     LOCA,
     ARGA,
@@ -53,6 +55,8 @@ public enum Operation {
                 return (byte)0x54; // print i
             case PRINTC:
                 return (byte)0x55;
+            case PRINTF:
+                return (byte)0x56;
             case PRINTS:
                 return (byte)0x57;
             case PRINTLN:
@@ -61,6 +65,8 @@ public enum Operation {
                 return (byte)0x50;
             case SCANC:
                 return (byte)0x51;
+            case SCANF:
+                return (byte)0x52;
             case SETGT:
                 return (byte)0x3a;
             case SETLT:

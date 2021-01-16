@@ -617,7 +617,7 @@ public final class Analyser {
     private void analyseIfStatement() throws CompileError {
         expect(TokenType.IF_KW);
         var type = analyseExpression(1);
-        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
+        if(type != TokenType.INT && type != TokenType.Double) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
         instructions.add(new Instruction(Operation.BRTRUE, 1));  // 如果condition满足，跳到if block开始
         instructions.add(new Instruction(Operation.BR, 0)); // 如果condition不满足，跳到else block开始, 或者跳到外面
         int index1 = instructions.size() - 1;
@@ -653,7 +653,7 @@ public final class Analyser {
         int index0 = instructions.size() - 1;
 
         var type = analyseExpression(1); // condition
-        if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
+        if(type != TokenType.INT && type != TokenType.Double) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
 
         instructions.add(new Instruction(Operation.BRTRUE, 1));
         instructions.add(new Instruction(Operation.BR, 0));  // 如果condition失败了，jump 到 while 外面

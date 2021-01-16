@@ -29,18 +29,20 @@ public class SymbolTable {
     public SymbolTable() {
         // 标准库
         this.StandardOP.put("getint", Operation.SCANI);
+        this.StandardOP.put("getdouble", Operation.SCANF);
         this.StandardOP.put("getchar", Operation.SCANC);
         this.StandardOP.put("putint", Operation.PRINTI);
+        this.StandardOP.put("putdouble", Operation.PRINTF);
         this.StandardOP.put("putchar", Operation.PRINTC);
         this.StandardOP.put("putstr", Operation.PRINTS);
         this.StandardOP.put("putln", Operation.PRINTLN);
 
         // 标准库
         this.standardFunction.put("getint", TokenType.INT);
-        //this.standardFunction.put("getdouble", TokenType.INT);
+        this.standardFunction.put("getdouble", TokenType.Double);
         this.standardFunction.put("getchar", TokenType.INT);
         this.standardFunction.put("putint", TokenType.VOID);
-        //this.standardFunction.put("putdouble", TokenType.VOID);
+        this.standardFunction.put("putdouble", TokenType.VOID);
         this.standardFunction.put("putchar", TokenType.VOID);
         this.standardFunction.put("putstr", TokenType.VOID);
         this.standardFunction.put("putln", TokenType.VOID);
@@ -135,7 +137,6 @@ public class SymbolTable {
     public void removeMap() {
         this.indexTableParam.remove(indexTableParam.size()-1);
         this.indexTableLocal.remove(indexTableLocal.size()-1);
-        System.out.println("gg");
     }
 
     /**
