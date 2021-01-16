@@ -179,7 +179,7 @@ public class Translator {
                 Instruction in = ins.instructions.get(i);
                 output.writeByte(in.operation2num());
                 if(in.x != -9595) {
-                    output.writeLong(in.x);
+                    output.writeInt(in.x);
                 }
             }
         }
