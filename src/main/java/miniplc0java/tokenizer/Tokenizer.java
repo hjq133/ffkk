@@ -211,7 +211,17 @@ public class Tokenizer {
             case '*':
                 return new Token(TokenType.Mult, '*', it.previousPos(), it.currentPos());
             case '/':
-                return new Token(TokenType.Div, '/', it.previousPos(), it.currentPos());
+                peek = it.peekChar();
+                if(peek == '/') {
+                    while (peek != '\n') {
+                        it.nextChar();
+                        peek = it.peekChar();
+                    }
+                    it.nextChar();
+                    return nextToken();
+                } else {
+                    return new Token(TokenType.Div, '/', it.previousPos(), it.currentPos());
+                }
             case '=':
                 begin = it.previousPos();
                 peek = it.peekChar();
