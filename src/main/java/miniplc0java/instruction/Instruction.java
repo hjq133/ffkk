@@ -18,6 +18,11 @@ public class Instruction {
         this.x = x;
     }
 
+    public Instruction(Operation opt, long x) {
+        this.opt = opt;
+        this.x = x;
+    }
+
     public byte[] toByte() {
 
         switch (this.opt) {
@@ -37,20 +42,20 @@ public class Instruction {
             case DIV:
             case RET:
             case CMP:
+            case FTOI:
+            case ITOF:
             //case dup:
             case SETLT:
             case SETGT:
             //case load8:
-            //case addf:
-            //case subf:
-            //case mulf:
-            //case divf:
-            //case cmpf:
-            //case ftoi:
-            //case itof:
+            case ADDF:
+            case SUBF:
+            case MULF:
+            case DIVF:
+            case CMPF:
+            case NEGF:
             case NEG:
             case NOT:
-            //case negf:
                 byte[] bytes=new byte[1];
                 bytes[0]=this.opt.toByte();
                 return bytes;
@@ -179,10 +184,18 @@ public class Instruction {
             case MUL:
             case SUB:
             case NEG:
+            case ADDF:
+            case SUBF:
+            case MULF:
+            case DIVF:
+            case CMPF:
+            case NEGF:
             case NOT:
             case LOD:
             case STO:
             case RET:
+            case FTOI:
+            case ITOF:
             case PRINTI:
             case PRINTC:
             case PRINTS:

@@ -39,6 +39,7 @@ public final class Analyser {
         this.instructionsFunctions = new ArrayList<>();
         this.symbolTable = new SymbolTable();
 
+        //this.OPPrec.put("as", 4);
         this.OPPrec.put("*", 3);
         this.OPPrec.put("/", 3);
         this.OPPrec.put("+", 2);
@@ -190,9 +191,9 @@ public final class Analyser {
     }
 
     /**
-     * 添加二元运算符的instrucion
+     * 添加int二元运算符的instrucion
      */
-    private void addBinaryOPInstruction(String op) throws AnalyzeError{
+    private void addBinaryOPInstructionInt(String op) throws AnalyzeError{
         switch (op) {
             case "+":
                 instructions.add(new Instruction(Operation.ADD));
@@ -230,6 +231,51 @@ public final class Analyser {
                 break;
             case "!=":
                 instructions.add(new Instruction(Operation.CMP));
+                break;
+        }
+    }
+
+    /**
+     * 添加float二元运算符的instrucion
+     */
+    private void addBinaryOPInstructionFloat(String op) throws AnalyzeError{
+        switch (op) {
+            case "+":
+                instructions.add(new Instruction(Operation.ADDF));
+                break;
+            case "-":
+                instructions.add(new Instruction(Operation.SUBF));
+                break;
+            case "/":
+                instructions.add(new Instruction(Operation.DIVF));
+                break;
+            case "*":
+                instructions.add(new Instruction(Operation.MULF));
+                break;
+            case ">":
+                instructions.add(new Instruction(Operation.CMPF));
+                instructions.add(new Instruction(Operation.SETGT));
+                break;
+            case "<=":
+                instructions.add(new Instruction(Operation.CMPF));
+                instructions.add(new Instruction(Operation.SETGT));
+                instructions.add(new Instruction(Operation.NOT));
+                break;
+            case "<":
+                instructions.add(new Instruction(Operation.CMPF));
+                instructions.add(new Instruction(Operation.SETLT));
+                break;
+            case ">=":
+                instructions.add(new Instruction(Operation.CMPF));
+                instructions.add(new Instruction(Operation.SETLT));
+                instructions.add(new Instruction(Operation.NOT));
+                break;
+            case "==":
+                instructions.add(new Instruction(Operation.CMPF));
+                instructions.add(new Instruction(Operation.NOT));
+                break;
+            case "!=":
+                instructions.add(new Instruction(Operation.CMPF));
                 break;
         }
     }
@@ -686,8 +732,8 @@ public final class Analyser {
             return TokenType.INT;
         } else if(check(TokenType.DoubleLiteral)) {
             var token = expect(TokenType.DoubleLiteral);
-            instructions.add(new Instruction(Operation.PUSH, (int) token.getValue()));
-            return TokenType.VOID;
+            instructions.add(new Instruction(Operation.PUSH, (long) token.getValue()));
+            return TokenType.Double;
         } else if(check(TokenType.String)) {
             var token = expect(TokenType.String);
             String value = token.getValue().toString();
@@ -829,8 +875,13 @@ public final class Analyser {
         var leftType = computeAtom();
         if(check(TokenType.AS_KW)) { // as_expr -> expr 'as' ty
             expect(TokenType.AS_KW);
-            var type = expect(TokenType.INT, TokenType.VOID);
-            // TODO 附加的先不管
+            var token = expect(TokenType.INT, TokenType.Double);
+            if(leftType == TokenType.INT && token.getTokenType() == TokenType.Double) { // itof
+                instructions.add(new Instruction(Operation.ITOF));
+            }else if(leftType == TokenType.Double && token.getTokenType() == TokenType.INT) { // ftoi
+                instructions.add(new Instruction(Operation.FTOI));
+            }
+            return token.getTokenType();
         } else { // operator_expr -> expr binary_operator expr 运算符表达式
             while(true) {
                 var token = peek();
@@ -852,10 +903,12 @@ public final class Analyser {
                 if(leftType != rightType) {
                     throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
                 }
-                addBinaryOPInstruction(op);
+                if(leftType == TokenType.Double) addBinaryOPInstructionFloat(op);
+                else if(leftType == TokenType.INT) addBinaryOPInstructionInt(op);
+                else throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
+                return leftType;
             }
         }
-        return TokenType.INT;
     }
 
     private void analyseCallParamList() throws CompileError {

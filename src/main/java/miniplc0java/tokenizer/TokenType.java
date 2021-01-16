@@ -80,14 +80,18 @@ public enum TokenType {
                 return "RETURN_KW";
             case Ident:
                 return "Identifier";
+
             case Uint:
                 return "UnsignedInteger";
-            case Double:
-                return "Double";
+            case DoubleLiteral:
+                return "DoubleLiteral";
             case String:
                 return "String";
             case Char:
                 return "Char";
+
+            case Double:
+                return "Double";
             case INT:
                 return "int";
             case VOID:

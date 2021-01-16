@@ -32,10 +32,20 @@ public enum Operation {
     ARGA,
     GLOBA,
 
+    FTOI,
+    ITOF,
+
     CMP,
     SETLT,
     SETGT,
-    NOT;
+    NOT,
+
+    DIVF,
+    MULF,
+    SUBF,
+    ADDF,
+    CMPF,
+    NEGF;
 
     public byte toByte(){
         switch (this) {
@@ -95,28 +105,28 @@ public enum Operation {
                 return (byte)0x43;
             case BRFALSE:
                 return (byte)0x42;
+            case FTOI:
+                return (byte)0x37;
+            case ITOF:
+                return (byte)0x36;
 //            case callname:
 //                return (byte)0x4a;
             case STACKALLOC:
                 return (byte)0x1a;
 //            case load8:
 //                return (byte)0x10;
-//            case addf:
-//                return (byte)0x24;
-//            case subf:
-//                return (byte)0x25;
-//            case mulf:
-//                return (byte)0x26;
-//            case divf:
-//                return (byte)0x27;
-//            case cmpf:
-//                return (byte)0x32;
-//            case ftoi:
-//                return (byte)0x37;
-//            case itof:
-//                return (byte)0x36;
-//            case negf:
-//                return (byte)0x35;
+            case ADDF:
+                return (byte)0x24;
+            case SUBF:
+                return (byte)0x25;
+            case MULF:
+                return (byte)0x26;
+            case DIVF:
+                return (byte)0x27;
+            case CMPF:
+                return (byte)0x32;
+            case NEGF:
+                return (byte)0x35;
             case NEG:
                 return (byte)0x34;
             default:
