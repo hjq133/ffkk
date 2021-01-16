@@ -708,6 +708,8 @@ public final class Analyser {
                 return analyseAssignExpression(name, nameToken);
             } else if(check(TokenType.LParen)) {  // 函数调用表达式
                 return analyseCallExpression(name, nameToken);
+            } else if(check(TokenType.AS_KW)) {
+                return analyseAsExpression(analyseIdentExpression(name, nameToken));
             } else {  // 标识符表达式
                 return analyseIdentExpression(name, nameToken);
             }
@@ -720,6 +722,20 @@ public final class Analyser {
         }
     }
 
+    /**
+     * 转换表达式
+     * as_expr -> Ident 'as' type
+     */
+    private TokenType analyseAsExpression(TokenType leftType) throws CompileError {
+        expect(TokenType.AS_KW);
+        var token = expect(TokenType.INT, TokenType.Double);
+        if(leftType == TokenType.INT && token.getTokenType() == TokenType.Double) { // itof
+            instructions.add(new Instruction(Operation.ITOF));
+        }else if(leftType == TokenType.Double && token.getTokenType() == TokenType.INT) { // ftoi
+            instructions.add(new Instruction(Operation.FTOI));
+        }
+        return token.getTokenType();
+    }
 
     /**
      * 括号表达式
@@ -755,7 +771,6 @@ public final class Analyser {
      * group_expr -> '(' expr ')'
      */
     private TokenType analyseParenExpression() throws CompileError {
-
         expect(TokenType.LParen);
         var type = analyseExpression(1);
         expect(TokenType.RParen);
@@ -869,44 +884,38 @@ public final class Analyser {
     }
 
     /**
-     * expr -> computeAtom (operator_expr | as_expr)
+     * expr -> computeAtom (operator_expr)
      */
     private TokenType analyseExpression(int minPrec) throws CompileError {
         var leftType = computeAtom();
-        if(check(TokenType.AS_KW)) { // as_expr -> expr 'as' ty
-            expect(TokenType.AS_KW);
-            var token = expect(TokenType.INT, TokenType.Double);
-            if(leftType == TokenType.INT && token.getTokenType() == TokenType.Double) { // itof
-                instructions.add(new Instruction(Operation.ITOF));
-            }else if(leftType == TokenType.Double && token.getTokenType() == TokenType.INT) { // ftoi
-                instructions.add(new Instruction(Operation.FTOI));
+        // operator_expr -> expr binary_operator expr 运算符表达式
+        while(true) {
+            var token = peek();
+            String name = token.getValue().toString();
+            if (OPPrec.get(name) == null || OPPrec.get(name) < minPrec) {
+                return leftType;
             }
-            return token.getTokenType();
-        } else { // operator_expr -> expr binary_operator expr 运算符表达式
-            while(true) {
-                var token = peek();
-                String name = token.getValue().toString();
-                if (OPPrec.get(name) == null || OPPrec.get(name) < minPrec) {
-                    return leftType;
-                }
-                next();
-                String op = token.getValue().toString();
-                int prec = OPPrec.get(op);
-                int nextMinPrec = prec + 1;
+            next();
+            String op = token.getValue().toString();
+            int prec = OPPrec.get(op);
+            int nextMinPrec = prec + 1;
 
-                TokenType rightType;
-                if(check(TokenType.Minus)) {
-                    rightType = analyseNegateExpression();
-                } else {
-                    rightType = analyseExpression(nextMinPrec);
-                }
-                if(leftType != rightType) {
-                    throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
-                }
-                if(leftType == TokenType.Double) addBinaryOPInstructionFloat(op);
-                else if(leftType == TokenType.INT) addBinaryOPInstructionInt(op);
-                else throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
+            TokenType rightType;
+            if(check(TokenType.Minus)) {
+                rightType = analyseNegateExpression();
+            } else {
+                rightType = analyseExpression(nextMinPrec);
             }
+            if(leftType != rightType) {
+                throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
+            }
+            if(leftType == TokenType.Double) {
+                addBinaryOPInstructionFloat(op);
+            }
+            else if(leftType == TokenType.INT) {
+                addBinaryOPInstructionInt(op);
+            }
+            else throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
         }
     }
 
