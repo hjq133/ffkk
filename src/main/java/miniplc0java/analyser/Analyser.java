@@ -552,15 +552,15 @@ public final class Analyser {
     private void analyseReturnStatement() throws CompileError {
         expect(TokenType.RETURN_KW);
         TokenType type = TokenType.VOID;
-        instructions.add(new Instruction(Operation.ARGA, 0));  // ARGA(0)
         if(nextIf(TokenType.Semicolon) == null) { // 如果有返回值
+            instructions.add(new Instruction(Operation.ARGA, 0));  // ARGA(0)
             type = analyseExpression(1);
+            instructions.add(new Instruction(Operation.STO));
         }
         // 如果不一致
         if(symbolTable.findSymbol(symbolTable.currentFuncName).type != type) {
             throw new AnalyzeError(ErrorCode.ReturnTypeError, symbolTable.currentFuncName);
         }
-        instructions.add(new Instruction(Operation.STO));
         instructions.add(new Instruction(Operation.RET));
     }
 

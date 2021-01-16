@@ -19,6 +19,7 @@ public class Translator {
     static int magic = 0x72303b3e;
     static int version = 0x00000001;
 
+    // 大端存储，高位在前，低位在后
     public static byte[] hex2Bytes(String hexString) {
         if (hexString == null || hexString.equals("")) {
             return null;
