@@ -378,7 +378,9 @@ public final class Analyser {
 
         // 常表达式
         var type1 = analyseExpression(1);
-        if(type1 != type.getTokenType()) throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
+        if(type1 != type.getTokenType()) {
+            throw new AnalyzeError(ErrorCode.TypeNotMatch, nameToken.getStartPos());
+        }
 
         // 分号
         expect(TokenType.Semicolon);
@@ -895,7 +897,7 @@ public final class Analyser {
             }
             next();
             String op = token.getValue().toString();
-            if(op == "as") {
+            while(op.equals("as")) {
                 var nextToken = expect(TokenType.INT, TokenType.Double);
                 if(leftType == TokenType.INT && nextToken.getTokenType() == TokenType.Double) { // itof
                     instructions.add(new Instruction(Operation.ITOF));
@@ -928,7 +930,9 @@ public final class Analyser {
             else if(leftType == TokenType.INT) {
                 addBinaryOPInstructionInt(op);
             }
-            else throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
+            else {
+                throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
+            }
         }
     }
 
