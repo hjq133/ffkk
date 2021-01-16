@@ -216,8 +216,10 @@ public final class Analyser {
             case "==":
                 instructions.add(new Instruction(Operation.CMP));
                 instructions.add(new Instruction(Operation.NOT));
+                break;
             case "!=":
                 instructions.add(new Instruction(Operation.CMP));
+                break;
         }
     }
 
