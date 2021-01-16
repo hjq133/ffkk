@@ -76,7 +76,11 @@ public class SymbolTable {
         }
         else { // 加入局部表
             entry.level = 2;
-            entry.index = indexTableLocal.get(indexTableLocal.size() - 1).size(); // 从0开始编号
+            int index = 0;
+            for(HashMap<String, SymbolEntry> table : indexTableLocal) {
+                index += table.size();
+            }
+            entry.index = index; // 从0开始编号
             addSymbol(name, entry, curPos, indexTableLocal.get(indexTableLocal.size() - 1));
         }
     }
