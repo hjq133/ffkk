@@ -39,7 +39,7 @@ public final class Analyser {
         this.instructionsFunctions = new ArrayList<>();
         this.symbolTable = new SymbolTable();
 
-        //this.OPPrec.put("as", 4);
+        this.OPPrec.put("as", 4);
         this.OPPrec.put("*", 3);
         this.OPPrec.put("/", 3);
         this.OPPrec.put("+", 2);
@@ -486,7 +486,7 @@ public final class Analyser {
         expect(TokenType.Colon);
 
         // 类型
-        var type = expect(TokenType.INT);
+        var type = expect(TokenType.INT, TokenType.Double);
 
         // 加入符号表
         String name = (String) nameToken.getValue();
@@ -708,8 +708,6 @@ public final class Analyser {
                 return analyseAssignExpression(name, nameToken);
             } else if(check(TokenType.LParen)) {  // 函数调用表达式
                 return analyseCallExpression(name, nameToken);
-            } else if(check(TokenType.AS_KW)) {
-                return analyseAsExpression(analyseIdentExpression(name, nameToken));
             } else {  // 标识符表达式
                 return analyseIdentExpression(name, nameToken);
             }
@@ -722,20 +720,20 @@ public final class Analyser {
         }
     }
 
-    /**
-     * 转换表达式
-     * as_expr -> Ident 'as' type
-     */
-    private TokenType analyseAsExpression(TokenType leftType) throws CompileError {
-        expect(TokenType.AS_KW);
-        var token = expect(TokenType.INT, TokenType.Double);
-        if(leftType == TokenType.INT && token.getTokenType() == TokenType.Double) { // itof
-            instructions.add(new Instruction(Operation.ITOF));
-        }else if(leftType == TokenType.Double && token.getTokenType() == TokenType.INT) { // ftoi
-            instructions.add(new Instruction(Operation.FTOI));
-        }
-        return token.getTokenType();
-    }
+//    /**
+//     * 转换表达式
+//     * as_expr -> Ident 'as' type
+//     */
+//    private TokenType analyseAsExpression(TokenType leftType) throws CompileError {
+//        expect(TokenType.AS_KW);
+//        var token = expect(TokenType.INT, TokenType.Double);
+//        if(leftType == TokenType.INT && token.getTokenType() == TokenType.Double) { // itof
+//            instructions.add(new Instruction(Operation.ITOF));
+//        }else if(leftType == TokenType.Double && token.getTokenType() == TokenType.INT) { // ftoi
+//            instructions.add(new Instruction(Operation.FTOI));
+//        }
+//        return token.getTokenType();
+//    }
 
     /**
      * 括号表达式
@@ -897,6 +895,21 @@ public final class Analyser {
             }
             next();
             String op = token.getValue().toString();
+            if(op == "as") {
+                var nextToken = expect(TokenType.INT, TokenType.Double);
+                if(leftType == TokenType.INT && nextToken.getTokenType() == TokenType.Double) { // itof
+                    instructions.add(new Instruction(Operation.ITOF));
+                }else if(leftType == TokenType.Double && nextToken.getTokenType() == TokenType.INT) { // ftoi
+                    instructions.add(new Instruction(Operation.FTOI));
+                }
+                token = peek();
+                name = token.getValue().toString();
+                if (OPPrec.get(name) == null || OPPrec.get(name) < minPrec) {
+                    return leftType;
+                }
+                next();
+                op = token.getValue().toString();
+            }
             int prec = OPPrec.get(op);
             int nextMinPrec = prec + 1;
 
