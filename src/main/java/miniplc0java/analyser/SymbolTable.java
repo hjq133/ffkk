@@ -104,9 +104,17 @@ public class SymbolTable {
      * @throws AnalyzeError
      */
     public void addSymbolParam(String name, boolean isConstant, Pos curPos, Token typeToken) throws AnalyzeError {
-        int index = indexTableParam.get(indexTableParam.size() - 1).size() + 1; // 多算一个，前面有个返回地址
+        int index = indexTableParam.get(indexTableParam.size() - 1).size();
         SymbolEntry entry = new SymbolEntry(isConstant, true, false, typeToken.getTokenType(), 3, index);
         addSymbol(name, entry, curPos, indexTableParam.get(indexTableParam.size() - 1));
+    }
+
+    public void reloadSymbolParam() throws AnalyzeError {
+        int index = indexTableParam.get(indexTableParam.size() - 1).size();
+        HashMap<String, SymbolEntry> currentTable = indexTableParam.get(indexTableParam.size() - 1);
+        for(String ss : currentTable.keySet()) {
+            currentTable.get(ss).index += 1;
+        }
     }
 
     /**

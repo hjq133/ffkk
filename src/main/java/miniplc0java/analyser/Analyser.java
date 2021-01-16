@@ -386,6 +386,7 @@ public final class Analyser {
         var type = expect(TokenType.INT, TokenType.VOID);  // 返回值类型
         if(type.getTokenType() != TokenType.VOID) {
             retSlot = 1; // return返回值的slot为1
+            symbolTable.reloadSymbolParam();
         }
         symbolTable.addSymbolFunc(name, nameToken.getStartPos(), type);  // 添加到全局变量表
 
@@ -555,7 +556,7 @@ public final class Analyser {
         expect(TokenType.RETURN_KW);
         TokenType type = TokenType.VOID;
         if(nextIf(TokenType.Semicolon) == null) { // 如果有返回值
-            instructions.add(new Instruction(Operation.ARGA, 0));  // ARGA(0)
+            instructions.add(new Instruction(Operation.ARGA, 0));
             type = analyseExpression(1);
             instructions.add(new Instruction(Operation.STO));
         }
