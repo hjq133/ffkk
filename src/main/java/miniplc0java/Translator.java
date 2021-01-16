@@ -180,7 +180,7 @@ public class Translator {
                 Instruction in = ins.instructions.get(i);
                 output.write(intToByteArray8(in.operation2num()));
                 if(in.x != -9595) {
-                    output.write(intToByteArray64(in.x));
+                    output.write(intToByteArray32(in.x));
                 }
             }
         }
