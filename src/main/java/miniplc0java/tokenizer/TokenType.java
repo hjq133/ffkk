@@ -11,9 +11,13 @@ public enum TokenType {
     ELSE_KW,
     RETURN_KW,
     Ident,
+
+    // 字面量
     Uint,
+    DoubleLiteral,
     String,
     Char,
+
     BREAK_KW,
     CONTINUE_KW,
 
@@ -50,6 +54,7 @@ public enum TokenType {
     /** type */
     INT,
     VOID,
+    Double,
 
     /** 文件尾 */
     EOF;
@@ -77,6 +82,8 @@ public enum TokenType {
                 return "Identifier";
             case Uint:
                 return "UnsignedInteger";
+            case Double:
+                return "Double";
             case String:
                 return "String";
             case Char:

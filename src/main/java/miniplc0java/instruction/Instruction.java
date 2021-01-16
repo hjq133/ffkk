@@ -6,14 +6,14 @@ import java.util.Objects;
 
 public class Instruction {
     public Operation opt;
-    public Integer x;
+    long x;
 
     public Instruction(Operation opt) {
         this.opt = opt;
-        this.x = -9595;
+        this.x = 0;
     }
 
-    public Instruction(Operation opt, Integer x) {
+    public Instruction(Operation opt, Long x) {
         this.opt = opt;
         this.x = x;
     }
@@ -163,10 +163,6 @@ public class Instruction {
 
     public void setOpt(Operation opt) {
         this.opt = opt;
-    }
-
-    public Integer getX() {
-        return x;
     }
 
     public void setX(Integer x) {

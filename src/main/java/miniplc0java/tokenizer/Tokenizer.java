@@ -29,6 +29,7 @@ public class Tokenizer {
             /* type */
             put("int", TokenType.INT);
             put("void", TokenType.VOID);
+            put("double", TokenType.Double);
         }
     };
 
@@ -69,28 +70,33 @@ public class Tokenizer {
     }
 
     private Token lexUInt() throws TokenizeError {
-        // 请填空：
         String val = "";
-        // 直到查看下一个字符不是数字为止:
         char peek = it.peekChar();
-        // 获取当前字符串位置
         Pos begin = it.currentPos();
-        while (Character.isDigit(peek)) {
+        TokenType type = TokenType.Uint;
+        while (Character.isDigit(peek)||peek=='.'||peek=='e'||peek=='E'||peek=='+'||peek=='-') {
+            if(peek == '.'){
+                type = TokenType.DoubleLiteral;
+            }else if(peek=='e'||peek=='E'||peek=='+'||peek=='-') {
+                if(type == TokenType.Uint) {
+                    throw new TokenizeError(ErrorCode.InvalidInput, it.previousPos());
+                }
+            }
             it.nextChar();
             val = val + peek;
             peek = it.peekChar();
-            // -- 前进一个字符，并存储这个字符
         }
-        // 获取当前字符串位置
         Pos end = it.currentPos();
-        // 解析存储的字符串为无符号整数
-        // 解析成功则返回无符号整数类型的token，否则返回编译错误
         try {
-            return new Token(TokenType.Uint, Integer.parseInt(val), begin, end);
-        } catch (Exception e) {
+            if(type==TokenType.Uint){
+                return new Token(TokenType.Uint, Integer.parseInt(val), begin, end);
+            }
+            else {
+                return new Token(TokenType.DoubleLiteral, Double.doubleToLongBits(Double.parseDouble(val)), begin, end);
+            }
+        }catch (Exception e) {
             throw new TokenizeError(ErrorCode.InvalidInput, begin);
         }
-        // Token 的 Value 应填写数字的值
     }
 
     private Token lexString() throws TokenizeError {
