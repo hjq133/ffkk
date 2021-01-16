@@ -8,8 +8,8 @@ public class SymbolEntry {
     boolean isInitialized;
     boolean isFunction;
     public TokenType type;
-    int level; // 1 代表全局，2 代表局部变量， 3 代表函数参数
-    int index;
+    Integer level; // 1 代表全局，2 代表局部变量， 3 代表函数参数
+    Integer index;
 
     int retSlot;
     int paraSlot;

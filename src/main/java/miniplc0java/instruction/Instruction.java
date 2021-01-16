@@ -13,7 +13,7 @@ public class Instruction {
         this.x = 0;
     }
 
-    public Instruction(Operation opt, Long x) {
+    public Instruction(Operation opt, int x) {
         this.opt = opt;
         this.x = x;
     }

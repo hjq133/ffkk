@@ -181,11 +181,11 @@ public final class Analyser {
     private void addSymbolInstruction(SymbolEntry symbol) {
         int index;
         if(symbol.level == 1) {
-            instructions.add(new Instruction(Operation.GLOBA, Long.valueOf(symbol.index)));
+            instructions.add(new Instruction(Operation.GLOBA, symbol.index));
         } else if (symbol.level == 2) {
-            instructions.add(new Instruction(Operation.LOCA, Long.valueOf(symbol.index)));
+            instructions.add(new Instruction(Operation.LOCA, symbol.index));
         } else {
-            instructions.add(new Instruction(Operation.ARGA, Long.valueOf(symbol.index)));
+            instructions.add(new Instruction(Operation.ARGA, symbol.index));
         }
     }
 
@@ -259,11 +259,11 @@ public final class Analyser {
         }
         expect(TokenType.EOF);
         if(symbol.type != TokenType.VOID) {
-            instructions.add(new Instruction(Operation.STACKALLOC, Long.valueOf(1))); // 分配返回值
+            instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
         }
-        instructions.add(new Instruction(Operation.CALL, Long.valueOf(symbol.index)));
+        instructions.add(new Instruction(Operation.CALL, symbol.index));
         if(symbol.type != TokenType.VOID) {
-            instructions.add(new Instruction(Operation.POP, Long.valueOf(1)));
+            instructions.add(new Instruction(Operation.POP, 1));
         }
 
         return buildFunctionInstruction(0, 0, 0, 0, "_start");
@@ -509,7 +509,7 @@ public final class Analyser {
             ArrayList<Integer> tmp = breakList.get(breakList.size()-1);
             for(Integer id : tmp) {
                 int offset = instructions.size() - 1 - id;
-                instructions.set(id, new Instruction(Operation.BR, Long.valueOf(offset)));
+                instructions.set(id, new Instruction(Operation.BR, offset));
             }
             breakList.remove(breakList.size()-1);
         }
@@ -522,7 +522,7 @@ public final class Analyser {
         expect(TokenType.BREAK_KW);
         expect(TokenType.Semicolon);
         if(breakList.size() != 0) {
-            instructions.add(new Instruction(Operation.BR, Long.valueOf(0)));
+            instructions.add(new Instruction(Operation.BR, 0));
             breakList.get(breakList.size()-1).add(instructions.size()-1);
         }else {
             throw new AnalyzeError(ErrorCode.BreakPosError, symbolTable.currentFuncName);
@@ -534,7 +534,7 @@ public final class Analyser {
             ArrayList<Integer> tmp = continueList.get(continueList.size()-1);
             for(Integer id : tmp) {
                 int offset = instructions.size() - 1 - id;
-                instructions.set(id, new Instruction(Operation.BR, Long.valueOf(offset)));
+                instructions.set(id, new Instruction(Operation.BR, offset));
             }
             continueList.remove(continueList.size()-1);
         }
@@ -547,7 +547,7 @@ public final class Analyser {
         expect(TokenType.CONTINUE_KW);
         expect(TokenType.Semicolon);
         if(continueList.size() != 0) {
-            instructions.add(new Instruction(Operation.BR, Long.valueOf(0)));
+            instructions.add(new Instruction(Operation.BR, 0));
             continueList.get(continueList.size()-1).add(instructions.size()-1);
         }else {
             throw new AnalyzeError(ErrorCode.ContinuePosError, symbolTable.currentFuncName);
@@ -572,17 +572,17 @@ public final class Analyser {
         expect(TokenType.IF_KW);
         var type = analyseExpression(1);
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
-        instructions.add(new Instruction(Operation.BRTRUE, Long.valueOf(1)));  // 如果condition满足，跳到if block开始
-        instructions.add(new Instruction(Operation.BR, Long.valueOf(0))); // 如果condition不满足，跳到else block开始, 或者跳到外面
+        instructions.add(new Instruction(Operation.BRTRUE, 1));  // 如果condition满足，跳到if block开始
+        instructions.add(new Instruction(Operation.BR, 0)); // 如果condition不满足，跳到else block开始, 或者跳到外面
         int index1 = instructions.size() - 1;
 
         analyseBlockStatement(true);
 
         if(nextIf(TokenType.ELSE_KW) != null) { // 有else语句
-            instructions.add(new Instruction(Operation.BR, Long.valueOf(0))); // 进入else前跳到末尾
+            instructions.add(new Instruction(Operation.BR, 0)); // 进入else前跳到末尾
             int index2 = instructions.size() - 1;
             var offset = instructions.size() - 1 - index1;
-            instructions.set(index1, new Instruction(Operation.BR, Long.valueOf(offset))); // 跳到else语句开始
+            instructions.set(index1, new Instruction(Operation.BR, offset)); // 跳到else语句开始
             if(check(TokenType.IF_KW)) {
                 analyseIfStatement();
             }
@@ -590,10 +590,10 @@ public final class Analyser {
                 analyseBlockStatement(true);
             }
             offset = instructions.size() - 1 - index2; // index2跳到末尾
-            instructions.set(index2, new Instruction(Operation.BR, Long.valueOf(offset)));
+            instructions.set(index2, new Instruction(Operation.BR, offset));
         } else { // 无else语句
             var offset = instructions.size() - 1 - index1; // 直接跳到外面
-            instructions.set(index1, new Instruction(Operation.BR, Long.valueOf(offset)));
+            instructions.set(index1, new Instruction(Operation.BR, offset));
         }
     }
 
@@ -609,8 +609,8 @@ public final class Analyser {
         var type = analyseExpression(1); // condition
         if(type != TokenType.INT) throw new AnalyzeError(ErrorCode.ConditionType, symbolTable.currentFuncName);
 
-        instructions.add(new Instruction(Operation.BRTRUE, Long.valueOf(1)));
-        instructions.add(new Instruction(Operation.BR, Long.valueOf(0)));  // 如果condition失败了，jump 到 while 外面
+        instructions.add(new Instruction(Operation.BRTRUE, 1));
+        instructions.add(new Instruction(Operation.BR, 0));  // 如果condition失败了，jump 到 while 外面
         int index1 = instructions.size() - 1;
 
         analyseBlockStatement(true);
@@ -618,10 +618,10 @@ public final class Analyser {
         // check continue list
         checkContinueList();
 
-        instructions.add(new Instruction(Operation.BR, Long.valueOf(index0 - (instructions.size() - 1) - 1))); // // 反着跳 无条件跳转到while开头
+        instructions.add(new Instruction(Operation.BR, index0 - (instructions.size() - 1) - 1)); // // 反着跳 无条件跳转到while开头
 
         int offset = instructions.size() - 1 - index1;
-        instructions.set(index1, new Instruction(Operation.BR, Long.valueOf(offset)));
+        instructions.set(index1, new Instruction(Operation.BR, offset));
 
         // check break list
         checkBreakList();
@@ -631,7 +631,7 @@ public final class Analyser {
         expect(TokenType.RETURN_KW);
         TokenType type = TokenType.VOID;
         if(nextIf(TokenType.Semicolon) == null) { // 如果有返回值
-            instructions.add(new Instruction(Operation.ARGA, Long.valueOf(0)));
+            instructions.add(new Instruction(Operation.ARGA, 0));
             type = analyseExpression(1);
             instructions.add(new Instruction(Operation.STO));
         }
@@ -682,21 +682,21 @@ public final class Analyser {
     private TokenType analyseLiteralExpression() throws CompileError {
         if(check(TokenType.Uint)) {
             var token = expect(TokenType.Uint);
-            instructions.add(new Instruction(Operation.PUSH, (Long) token.getValue()));
+            instructions.add(new Instruction(Operation.PUSH, (int) token.getValue()));
             return TokenType.INT;
         } else if(check(TokenType.DoubleLiteral)) {
             var token = expect(TokenType.DoubleLiteral);
-            instructions.add(new Instruction(Operation.PUSH, (Long) token.getValue()));
+            instructions.add(new Instruction(Operation.PUSH, (int) token.getValue()));
             return TokenType.VOID;
         } else if(check(TokenType.String)) {
             var token = expect(TokenType.String);
             String value = token.getValue().toString();
             symbolTable.addSymbolString(value, token.getStartPos(), token);
-            instructions.add(new Instruction(Operation.PUSH, Long.valueOf(symbolTable.findSymbol(value).index))); // push index进去
+            instructions.add(new Instruction(Operation.PUSH, symbolTable.findSymbol(value).index)); // push index进去
             return TokenType.VOID;
         } else if(check(TokenType.Char)) {
             var token = expect(TokenType.Char);
-            instructions.add(new Instruction(Operation.PUSH, (Long) token.getValue()));
+            instructions.add(new Instruction(Operation.PUSH, (int) token.getValue()));
             return TokenType.INT;
         } else {
             throw new ExpectedTokenError(List.of(TokenType.Ident, TokenType.Uint, TokenType.LParen), next());
@@ -797,7 +797,7 @@ public final class Analyser {
                 throw new AnalyzeError(ErrorCode.ExpectedFunction, /* 当前位置 */ nameToken.getStartPos());
             }
             if(symbol.type != TokenType.VOID) {
-                instructions.add(new Instruction(Operation.STACKALLOC, Long.valueOf(1))); // 分配返回值
+                instructions.add(new Instruction(Operation.STACKALLOC, 1)); // 分配返回值
             }
 
             expect(TokenType.LParen);
@@ -807,7 +807,7 @@ public final class Analyser {
                 analyseCallParamList();
                 expect(TokenType.RParen);
             }
-            instructions.add(new Instruction(Operation.CALL, Long.valueOf(symbol.index)));
+            instructions.add(new Instruction(Operation.CALL, symbol.index));
             return symbol.type;
         } else {  // 是标准库函数
             expect(TokenType.LParen);
