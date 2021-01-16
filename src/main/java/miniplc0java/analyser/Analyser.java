@@ -11,7 +11,7 @@ import miniplc0java.instruction.Operation;
 import miniplc0java.tokenizer.Token;
 import miniplc0java.tokenizer.TokenType;
 import miniplc0java.tokenizer.Tokenizer;
-
+//import java.util.Convert.toBytes;
 import java.util.*;
 
 public final class Analyser {
@@ -48,6 +48,27 @@ public final class Analyser {
         this.OPPrec.put("==", 1);
         this.OPPrec.put("!=", 1);
     }
+
+//    public static byte[] HexStringToByte(String hexString)
+//    {
+//        char[] charList = hexString.toCharArray();
+//        byte[] resultList = new byte[charList.length / 2];
+//
+//        int byteCount = 0;
+//
+//        for (int i = 0; i < charList.length; i += 2)
+//        {
+//            //一个byte相当于两个16进制的数
+//            byte b = 0x00;
+//            b |= convert.ToByte("0x0" + charList[i], 16);
+//            b <<= 4;//移位操作，左移4位
+//            b |= Convert.ToByte("0x0" + charList[i + 1],16);
+//            resultList[byteCount] = b;
+//            byteCount++;
+//        }
+//
+//        return resultList;
+//    }
 
     public void analyse() throws CompileError {
         ArrayList<FunctionInstruction> tmp = new ArrayList<>();

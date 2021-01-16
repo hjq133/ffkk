@@ -9,6 +9,7 @@ import miniplc0java.tokenizer.TokenType;
 import java.io.PrintStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.io.IOException;
 
 public class Translator {
     ArrayList<Instruction> instructions;
@@ -17,6 +18,54 @@ public class Translator {
     PrintStream output;
     static int magic = 0x72303b3e;
     static int version = 0x00000001;
+
+    public static byte[] hex2Bytes(String hexString) {
+        if (hexString == null || hexString.equals("")) {
+            return null;
+        }
+
+        int length = hexString.length() / 2;
+        char[] hexChars = hexString.toCharArray();
+        byte[] bytes = new byte[length];
+        String hexDigits = "0123456789abcdef";
+        for (int i = 0; i < length; i++) {
+            int pos = i * 2; // 两个字符对应一个byte
+            int h = hexDigits.indexOf(hexChars[pos]) << 4; // 注1
+            int l = hexDigits.indexOf(hexChars[pos + 1]); // 注2
+            if(h == -1 || l == -1) { // 非16进制字符
+                return null;
+            }
+            bytes[i] = (byte) (h | l);
+        }
+        return bytes;
+    }
+
+    public static byte[] intToByteArray64(int i) {
+        byte[] result = new byte[8];
+        result[0] = (byte)(0);
+        result[1] = (byte)(0);
+        result[2] = (byte)(0);
+        result[3] = (byte)(0);
+        result[4] = (byte)((i >> 24) & 0xFF);
+        result[5] = (byte)((i >> 16) & 0xFF);
+        result[6] = (byte)((i >> 8) & 0xFF);
+        result[7] = (byte)(i & 0xFF);
+        return result;
+    }
+
+    public static byte[] intToByteArray32(int i) {
+        byte[] result = new byte[4];
+        result[0] = (byte)((i >> 24) & 0xFF);
+        result[1] = (byte)((i >> 16) & 0xFF);
+        result[2] = (byte)((i >> 8) & 0xFF);
+        result[3] = (byte)(i & 0xFF);
+        return result;
+    }
+
+    public static byte intToByteArray8(int i) {
+        byte re = (byte)(i & 0xFF);
+        return re;
+    }
 
     public Translator(ArrayList<Instruction> ins, ArrayList<FunctionInstruction> functionInstructions, HashMap<String, SymbolEntry> mapGlobal, PrintStream output) {
         this.instructions = ins;
@@ -90,46 +139,46 @@ public class Translator {
         System.out.println();
     }
 
-    public void translate() {
-        output.printf("%08x", magic);  // magic u32
-        output.printf("%08x", version);  // version u32
+    public void translate() throws IOException{
+        output.write(intToByteArray32(magic));  // magic u32
+        output.write(intToByteArray32(version)); // version u32
 
-        output.printf("%08x", mapGolbal.size() + functionInstructions.size());  // global.count
+        output.write(intToByteArray32(mapGolbal.size() + functionInstructions.size()));  // global.count u32
         for(String ss: mapGolbal.keySet()) {
             SymbolEntry entry = mapGolbal.get(ss);
             int isConst = entry.isConstant ? 1 : 0;
-            output.printf("%02x", isConst);  // is_const
+            output.write(intToByteArray8(isConst));  // is_const u8
             if(entry.type == TokenType.String) {
                 String to16 = strTo16(ss);
-                output.printf("%08x", to16.length());
-                output.print(to16);
+                output.write(intToByteArray32(to16.length()));  // count u32
+                output.write(hex2Bytes(to16));  // hex16 2 byte
             }else {
-                output.printf("%08x", 8);  // value.count，全局变量都用0占位，都是8字节
-                output.printf("%016x", 0);  //  value.item，值为0，占位？
+                output.write(intToByteArray32(8)); // value.count，全局变量都用0占位，都是8字节
+                output.write(intToByteArray64(0)); //  value.item，u64 值为0，占位？
             }
         }
 
-        // global function name
+        // global function
         for(FunctionInstruction ins: this.functionInstructions) {
-            output.printf("%02x", 1);
-            output.printf("%08x", ins.funcName.length());
-            output.print(ins.funcName);
+            output.write(intToByteArray8(1));  // is_const u8
+            output.write(intToByteArray32(ins.funcName.length())); // count u32
+            output.write(hex2Bytes(strTo16(ins.funcName)));
         }
 
         // functions
-        output.printf("%08x", this.functionInstructions.size()); // function.count
+        output.write(intToByteArray32(this.functionInstructions.size())); // function.count u32
         for(FunctionInstruction ins: this.functionInstructions) {
-            output.printf("%08x", ins.funcIndex + this.mapGolbal.size()); // function.name
-            output.printf("%08x", ins.retSlot);  // function.ret_slots
-            output.printf("%08x", ins.paraSlot);  // function.param_slots
-            output.printf("%08x", ins.localSlot);  // function.loc_slots
-            output.printf("%08x", ins.instructions.size());  // body.count
+            output.write(intToByteArray32(ins.funcIndex + this.mapGolbal.size())); // function.name u32
+            output.write(intToByteArray32(ins.retSlot));  // function.ret_slots u32
+            output.write(intToByteArray32(ins.paraSlot));  // function.param_slots u32
+            output.write(intToByteArray32(ins.localSlot));  // function.loc_slots u32
+            output.write(intToByteArray32(ins.instructions.size()));  // body.count u32
             // body.item
             for(int i=0; i < ins.instructions.size(); i++) {
                 Instruction in = ins.instructions.get(i);
-                output.printf("%02x", in.operation2num());
+                output.write(intToByteArray8(in.operation2num()));
                 if(in.x != -9595) {
-                    output.printf("%016x", in.x);
+                    output.write(intToByteArray64(in.x));
                 }
             }
         }
