@@ -23,6 +23,8 @@ public class Tokenizer {
             put("if", TokenType.IF_KW);
             put("else", TokenType.ELSE_KW);
             put("return", TokenType.RETURN_KW);
+            put("break", TokenType.Break);
+            put("continue", TokenType.Continue);
 
             /* type */
             put("int", TokenType.INT);

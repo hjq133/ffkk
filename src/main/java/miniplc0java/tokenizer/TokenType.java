@@ -14,6 +14,8 @@ public enum TokenType {
     Uint,
     String,
     Char,
+    BREAK_KW,
+    CONTINUE_KW,
 
     /** 运算符 */
     /** 加号 */

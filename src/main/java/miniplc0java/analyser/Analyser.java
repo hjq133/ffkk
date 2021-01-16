@@ -20,6 +20,8 @@ public final class Analyser {
     public ArrayList<Instruction> instructions;
     public ArrayList<FunctionInstruction> instructionsFunctions;
     public SymbolTable symbolTable;
+    ArrayList<Integer> breakList = new ArrayList<>();
+    ArrayList<Integer> continueList = new ArrayList<>();
 
     /**
      * 当前偷看的 token
@@ -483,8 +485,41 @@ public final class Analyser {
             analyseBlockStatement(true);
         } else if(check(TokenType.Semicolon)) { // empty_stmt
             expect(TokenType.Semicolon);
-        } else {
+        } else if(check(TokenType.BREAK_KW)) {
+            analyseBreakStatement();
+        } else if(check(TokenType.CONTINUE_KW)) {
+            analyseContinueStatement();
+        }
+        else {
             analyseExpressionStatement();
+        }
+    }
+
+    /**
+     * break_stmt -> 'break' ';'
+     */
+    private void analyseBreakStatement() throws CompileError, AnalyzeError {
+        expect(TokenType.BREAK_KW);
+        expect(TokenType.Semicolon);
+        if(breakList.size() != 0) {
+            instructions.add(new Instruction(Operation.BR, 0));
+            breakList.set(breakList.size()-1, instructions.size()-1);
+        }else {
+            throw new AnalyzeError(ErrorCode.BreakPosError, symbolTable.currentFuncName);
+        }
+    }
+
+    /**
+     * continue_stmt -> 'continue' ';'
+     */
+    private void analyseContinueStatement() throws CompileError{
+        expect(TokenType.CONTINUE_KW);
+        expect(TokenType.Semicolon);
+        if(continueList.size() != 0) {
+            instructions.add(new Instruction(Operation.BR, 0));
+            continueList.set(continueList.size()-1, instructions.size()-1);
+        }else {
+            throw new AnalyzeError(ErrorCode.ContinuePosError, symbolTable.currentFuncName);
         }
     }
 
@@ -535,6 +570,8 @@ public final class Analyser {
      * while_stmt -> 'while' expr block_stmt
      */
     private void analyseWhileStatement() throws CompileError {
+        breakList.add(-1);
+        continueList.add(-1);
         expect(TokenType.WHILE_KW);
         int index0 = instructions.size() - 1;
 
@@ -546,10 +583,31 @@ public final class Analyser {
         int index1 = instructions.size() - 1;
 
         analyseBlockStatement(true);
+
+        // check continue list
+        if(continueList.size() != 0) {
+            int index4 = continueList.get(continueList.size()-1);
+            if(index4 != -1) {
+                int offset = instructions.size() - 1 - index4;
+                instructions.set(index4, new Instruction(Operation.BR, offset));
+            }
+            continueList.remove(continueList.size()-1);
+        }
+
         instructions.add(new Instruction(Operation.BR, index0 - (instructions.size() - 1) - 1)); // // 反着跳 无条件跳转到while开头
 
         int offset = instructions.size() - 1 - index1;
         instructions.set(index1, new Instruction(Operation.BR, offset));
+
+        // check break list
+        if(breakList.size() != 0) {
+            int index3 = breakList.get(breakList.size()-1);
+            if(index3 != -1) {
+                offset = instructions.size() - 1 - index3;
+                instructions.set(index3, new Instruction(Operation.BR, offset));
+            }
+            breakList.remove(breakList.size()-1);
+        }
     }
 
     private void analyseReturnStatement() throws CompileError {
