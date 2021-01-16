@@ -906,7 +906,6 @@ public final class Analyser {
                 if(leftType == TokenType.Double) addBinaryOPInstructionFloat(op);
                 else if(leftType == TokenType.INT) addBinaryOPInstructionInt(op);
                 else throw new AnalyzeError(ErrorCode.TypeNotMatch, token.getStartPos());
-                return leftType;
             }
         }
     }
