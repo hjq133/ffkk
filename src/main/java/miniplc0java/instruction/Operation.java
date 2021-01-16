@@ -20,7 +20,7 @@ public enum Operation {
     BRFALSE,
     BR, // 无条件跳转
 
-    PRINGI,
+    PRINTI,
     PRINTC,
     PRINTS,
     PRINTLN,
@@ -39,6 +39,18 @@ public enum Operation {
 
     public byte toByte(){
         switch (this) {
+            case PRINTI:
+                return (byte)0x54; // print i
+            case PRINTC:
+                return (byte)0x55;
+            case PRINTS:
+                return (byte)0x57;
+            case PRINTLN:
+                return (byte)0x58;
+            case SCANI:
+                return (byte)0x50;
+            case SCANC:
+                return (byte)0x51;
             case SETGT:
                 return (byte)0x3a;
             case SETLT:
@@ -106,6 +118,7 @@ public enum Operation {
             case NEG:
                 return (byte)0x34;
             default:
+                System.out.println("error, eroor!!!!!!!!!!!!");
                 return (byte)0xfe;//panic
         }
     }

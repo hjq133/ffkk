@@ -21,6 +21,12 @@ public class Instruction {
     public byte[] toByte() {
 
         switch (this.opt) {
+            case PRINTI:
+            case PRINTC:
+            case PRINTS:
+            case PRINTLN:
+            case SCANI:
+            case SCANC:
             //case nop:
             case POP:
             case STO:
@@ -66,6 +72,7 @@ public class Instruction {
                 byteBuffer.putInt((int)x);
                 return byteBuffer.array();
             default:
+                System.out.println("eroor,eroor,error!!!!!!!!");
                 return new byte[]{(byte)0xfe};
         }
     }
@@ -116,7 +123,7 @@ public class Instruction {
 //                return 0x48;
 //            case RET:
 //                return 0x49;
-//            case PRINGI:
+//            case PRINTI:
 //                return 0x54; // print i
 //            case PRINTC:
 //                return 0x55;
@@ -179,7 +186,7 @@ public class Instruction {
             case LOD:
             case STO:
             case RET:
-            case PRINGI:
+            case PRINTI:
             case PRINTC:
             case PRINTS:
             case PRINTLN:

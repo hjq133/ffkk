@@ -30,7 +30,7 @@ public class SymbolTable {
         // 标准库
         this.StandardOP.put("getint", Operation.SCANI);
         this.StandardOP.put("getchar", Operation.SCANC);
-        this.StandardOP.put("putint", Operation.PRINGI);
+        this.StandardOP.put("putint", Operation.PRINTI);
         this.StandardOP.put("putchar", Operation.PRINTC);
         this.StandardOP.put("putstr", Operation.PRINTS);
         this.StandardOP.put("putln", Operation.PRINTLN);
