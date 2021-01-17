@@ -166,13 +166,13 @@ public class Tokenizer {
         it.nextChar();
         Pos end = it.currentPos();
         return switch (val) {
-            case "\\n" -> new Token(TokenType.Char, '\n', begin, end);
-            case "\\r" -> new Token(TokenType.Char, '\r', begin, end);
-            case "\\t" -> new Token(TokenType.Char, '\t', begin, end);
-            case "\\\\" -> new Token(TokenType.Char, '\\', begin, end);
-            case "\\'" -> new Token(TokenType.Char, '\'', begin, end);
-            case "\\\"" -> new Token(TokenType.Char, '\"', begin, end);
-            default -> new Token(TokenType.Char, val.charAt(0), begin, end);
+            case "\\n" -> new Token(TokenType.Uint, (int)'\n', begin, end);
+            case "\\r" -> new Token(TokenType.Uint, (int)'\r', begin, end);
+            case "\\t" -> new Token(TokenType.Uint, (int)'\t', begin, end);
+            case "\\\\" -> new Token(TokenType.Uint, (int)'\\', begin, end);
+            case "\\'" -> new Token(TokenType.Uint, (int)'\'', begin, end);
+            case "\\\"" -> new Token(TokenType.Uint, (int)'\"', begin, end);
+            default -> new Token(TokenType.Uint, (int)val.charAt(0), begin, end);
         };
     }
 
